@@ -1,0 +1,20 @@
+<phpunit bootstrap="./bootstrap.php">
+    <testsuite name="greebo_mustache Test Suite">
+        <directory>../</directory>
+    </testsuite>
+
+    <filter>
+        <blacklist>
+            <directory suffix=".mustache">../templates</directory>
+        </blacklist>
+        <whitelist>
+            <directory suffix=".php">../../src/</directory>
+        </whitelist>
+    </filter>
+
+    <groups>
+      <exclude>
+        <group>pragma</group>
+      </exclude>
+    </groups>
+</phpunit>
