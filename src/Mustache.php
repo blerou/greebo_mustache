@@ -64,7 +64,7 @@ class Mustache
   private function splitTemplate($template, $otag, $ctag)
   {
     $flags   = PREG_SPLIT_DELIM_CAPTURE;
-    $pattern = sprintf('/(%s.+?\\}?%s)/', preg_quote($otag, '/'), $ctag, preg_quote($ctag, '/'));
+    $pattern = sprintf('/(%s.+?\\}?%s)/s', preg_quote($otag, '/'), $ctag, preg_quote($ctag, '/'));
     return preg_split($pattern, $template, null, $flags);
   }
 
@@ -83,6 +83,8 @@ class Mustache
           return array('type' => 'raw_variable', 'name' => trim(substr($part, 1, -1)));
         case '&':
           return array('type' => 'raw_variable', 'name' => trim(substr($part, 1)));
+        case '!':
+          return array('type' => 'comment');
         default:
           return array('type' => 'variable', 'name' => $part);
       }
