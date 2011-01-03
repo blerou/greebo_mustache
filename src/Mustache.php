@@ -9,7 +9,7 @@ class Mustache
 
   public function render($template, $view, $partials = null)
   {
-    $d = false;//$template == 'template-with-enumerable';
+    $d = false;//$template == 'template-with-conditional';
     if ($this->isTemplateFile($template)) {
       $templatePath = $this->findTemplate($template);
       if (empty($templatePath)) {
@@ -19,9 +19,9 @@ class Mustache
       $template = file_get_contents($templatePath);
     }
 
-    $tokens     = $this->tokenize($template, '{{', '}}');
+    $tokens     = $this->tokenize($template);
     $generated  = $this->generate($tokens);
-    if ($d) var_dump($tokens, $generated);
+    if ($d) { var_dump($tokens, $generated); exit; }
     $compileFor = function($context) use($generated) {
       eval($generated);
       $stripme = preg_quote('/*__stripme__*/', '/');
@@ -51,45 +51,59 @@ class Mustache
     return false;
   }
 
-  private function tokenize($template, $otag, $ctag)
+  private function tokenize($template, $otag   = '{{', $ctag   = '}}')
   {
-    $parts  = $this->splitTemplate($template, $otag, $ctag);
     $tokens = array();
-    foreach ($parts as $part) {
-      $tokens[] = $this->createToken($part, $otag, $ctag);
+    while (true) {
+      $tagPattern = sprintf('/(%s.+?\\}?%s)/s', preg_quote($otag, '/'), preg_quote($ctag, '/'));
+      list($content, $tag, $template) = preg_split($tagPattern, $template, 2, PREG_SPLIT_DELIM_CAPTURE);
+
+      $tokens[] = array('type' => 'content', 'content' => $content);
+      if (!isset($tag)) {
+        break;
+      }
+
+      $tagToken = $this->createTagToken($tag, $otag, $ctag);
+      if ($tagToken['type'] == 'section') {
+        $sectionPattern = sprintf('/(%s\\/%s%s)/s', preg_quote($otag, '/'), $tagToken['name'], preg_quote($ctag, '/'));
+        list($content, $tag, $template) = preg_split($sectionPattern, $template, 2, PREG_SPLIT_DELIM_CAPTURE);
+
+        $tokens[] = $tagToken;
+        $tokens   = array_merge($tokens, $this->tokenize($content, $otag, $ctag));
+        $tokens[] = array('type' => 'end', 'related' => 'section');
+      } else if ($tagToken['type'] == 'delimiter') {
+        $otag = $tagToken['otag'];
+        $ctag = $tagToken['ctag'];
+        $tokens[] = $tagToken;
+      } else {
+        $tokens[] = $tagToken;
+      }
     }
+
     return $tokens;
   }
 
-  private function splitTemplate($template, $otag, $ctag)
+  private function createTagToken($tag, $otag, $ctag)
   {
-    $flags   = PREG_SPLIT_DELIM_CAPTURE;
-    $pattern = sprintf('/(%s.+?\\}?%s)/s', preg_quote($otag, '/'), $ctag, preg_quote($ctag, '/'));
-    return preg_split($pattern, $template, null, $flags);
-  }
-
-  private function createToken($part, $otag, $ctag)
-  {
-    if (0 === strpos($part, $otag)) {
-      $part = substr($part, strlen($otag), -1*strlen($ctag));
-      switch (substr($part, 0, 1)) {
-        case '#':
-          return array('type' => 'section', 'name' => trim(substr($part, 1)));
-        case '/':
-          return array('type' => 'end', 'name' => trim(substr($part, 1)));
-        case '^':
-          return array('type' => 'inverted_section', 'name' => trim(substr($part, 1)));
-        case '{':
-          return array('type' => 'raw_variable', 'name' => trim(substr($part, 1, -1)));
-        case '&':
-          return array('type' => 'raw_variable', 'name' => trim(substr($part, 1)));
-        case '!':
-          return array('type' => 'comment');
-        default:
-          return array('type' => 'variable', 'name' => $part);
-      }
-    } else {
-      return array('type' => 'content', 'content' => $part);
+    $tag = substr($tag, strlen($otag), -1*strlen($ctag));
+    switch (substr($tag, 0, 1)) {
+      case '#':
+        return array('type' => 'section', 'name' => trim(substr($tag, 1)));
+      case '/':
+        return array('type' => 'end', 'related' => 'inverted_section');
+      case '^':
+        return array('type' => 'inverted_section', 'name' => trim(substr($tag, 1)));
+      case '{':
+        return array('type' => 'raw_variable', 'name' => trim(substr($tag, 1, -1)));
+      case '&':
+        return array('type' => 'raw_variable', 'name' => trim(substr($tag, 1)));
+      case '!':
+        return array('type' => 'comment');
+      case '=':
+        list($otag, $ctag) = preg_split('/ +/', trim($tag, ' ='));
+        return array('type' => 'delimiter', 'otag' => $otag, 'ctag' => $ctag);
+      default:
+        return array('type' => 'variable', 'name' => $tag);
     }
   }
 
@@ -106,7 +120,6 @@ class Mustache
   private function generateForToken($token)
   {
     static $stripStartingNewLine = false;
-    static $endStack = array();
     switch ($token['type']) {
       case 'content':
         $content = strtr($token['content'], '"', '\\"');
@@ -123,7 +136,6 @@ class Mustache
         return sprintf('$result .= $context->getRaw(\'%s\');', $token['name']);
       case 'section':
         $stripStartingNewLine = true;
-        \array_push($endStack, 'section');
         return strtr(
           '$_%name% = $context->getRaw(\'%name%\');
            if ($_%name%) {
@@ -134,7 +146,6 @@ class Mustache
         );
       case 'inverted_section':
         $stripStartingNewLine = true;
-        \array_push($endStack, 'inverted_section');
         return strtr(
           '$_%name% = $context->getRaw(\'%name%\');
            if (empty($_%name%)) {',
@@ -142,7 +153,7 @@ class Mustache
         );
       case 'end':
         $stripStartingNewLine = true;
-        switch (\array_pop($endStack)) {
+        switch ($token['related']) {
           case 'section':
             return '$context->pop();} }';
           case 'inverted_section':
@@ -150,6 +161,9 @@ class Mustache
           default:
             return '';
         }
+      case 'delimiter':
+        $stripStartingNewLine = true;
+        return '';
       default:
         $stripStartingNewLine = false;
         return '';
