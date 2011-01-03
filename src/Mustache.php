@@ -24,7 +24,7 @@ class Mustache
     $compileFor = function($context) use($generated) {
       eval($generated);
       $stripme = preg_quote('/*__stripme__*/', '/');
-      $patterns = array('/^\s*%s\\n?/','/\s*%s$/','/\\n\s*%s/');
+      $patterns = array('/^\s*%s\n/', '/^\s*%s/', '/\s*%s$/', '/\n\s*%s/');
       foreach ($patterns as $pattern) {
         $result = \preg_replace(sprintf($pattern, $stripme), '', $result);
       }
@@ -74,9 +74,11 @@ class Mustache
       $part = substr($part, strlen($otag), -1*strlen($ctag));
       switch (substr($part, 0, 1)) {
         case '#':
-          return array('type' => 'section_start', 'name' => trim(substr($part, 1)));
+          return array('type' => 'section', 'name' => trim(substr($part, 1)));
         case '/':
-          return array('type' => 'section_end', 'name' => trim(substr($part, 1)));
+          return array('type' => 'end', 'name' => trim(substr($part, 1)));
+        case '^':
+          return array('type' => 'inverted_section', 'name' => trim(substr($part, 1)));
         default:
           return array('type' => 'variable', 'name' => $part);
       }
@@ -99,6 +101,7 @@ class Mustache
   private function generateForToken($token)
   {
     static $stripStartingNewLine = false;
+    static $endStack = array();
     switch ($token['type']) {
       case 'content':
         $content = strtr($token['content'], '"', '\\"');
@@ -110,8 +113,9 @@ class Mustache
       case 'variable':
         $stripStartingNewLine = false;
         return sprintf('$result .= $context->get(\'%s\');', $token['name']);
-      case 'section_start':
+      case 'section':
         $stripStartingNewLine = true;
+        \array_push($endStack, 'section');
         return strtr(
           '$_%name% = $context->getRaw(\'%name%\');
            if ($_%name%) {
@@ -120,9 +124,24 @@ class Mustache
                $context->push($_item);',
           array('%name%' => $token['name'])
         );
-      case 'section_end':
+      case 'inverted_section':
         $stripStartingNewLine = true;
-        return sprintf('$context->pop();} }');
+        \array_push($endStack, 'inverted_section');
+        return strtr(
+          '$_%name% = $context->getRaw(\'%name%\');
+           if (empty($_%name%)) {',
+          array('%name%' => $token['name'])
+        );
+      case 'end':
+        $stripStartingNewLine = true;
+        switch (\array_pop($endStack)) {
+          case 'section':
+            return '$context->pop();} }';
+          case 'inverted_section':
+            return '}';
+          default:
+            return '';
+        }
       default:
         $stripStartingNewLine = false;
         return '';
