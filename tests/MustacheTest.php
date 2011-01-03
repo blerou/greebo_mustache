@@ -201,8 +201,8 @@ EOT;
     <p>one of its attributes is a list</p>
     <ul>
         <li>listitem1</li>
-                <li>listitem2</li>
-            </ul>
+        <li>listitem2</li>
+    </ul>
 
 EOT;
         $this->assertEquals($expected, $test);
@@ -224,8 +224,8 @@ EOT;
     <p>one of its attributes is a list</p>
     <ul>
         <li>listitem1</li>
-                <li>listitem2</li>
-            </ul>
+        <li>listitem2</li>
+    </ul>
 
 EOT;
         $this->assertEquals($expected, $test);

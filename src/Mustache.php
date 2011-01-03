@@ -8,7 +8,7 @@ class Mustache
 
   public function render($template, $view, $partials = null)
   {
-    $d = $template == 'template-with-enumerable';
+    $d = false;//$template == 'template-with-enumerable';
     if ($this->isTemplateFile($template)) {
       $templatePath = $this->findTemplate($template);
       if (empty($templatePath)) {
@@ -22,8 +22,13 @@ class Mustache
     $generated  = $this->generate($tokens);
     if ($d) var_dump($tokens, $generated);
     $compileFor = function($context) use($generated) {
-      eval(sprintf('%s', $generated));
-      return $_result;
+      eval($generated);
+      $stripme = preg_quote('/*__stripme__*/', '/');
+      $patterns = array('/^\s*%s\\n?/','/\s*%s$/','/\\n\s*%s/');
+      foreach ($patterns as $pattern) {
+        $result = \preg_replace(sprintf($pattern, $stripme), '', $result);
+      }
+      return $result;
     };
 
     return $compileFor(new ContextStack($view));
@@ -83,7 +88,7 @@ class Mustache
 
   private function generate($tokens)
   {
-    $compiled = '$_result = "";';
+    $compiled = '$result = "";';
     foreach ($tokens as $token) {
       $compiled .= "\n";
       $compiled .= $this->generateForToken($token);
@@ -98,21 +103,21 @@ class Mustache
       case 'content':
         $content = strtr($token['content'], '"', '\\"');
         if ($stripStartingNewLine) {
-          $content = preg_replace('/^ *\\n/', '', $content);
+          $content = '/*__stripme__*/'.$content;
         }
         $stripStartingNewLine = false;
-        return sprintf('$_result .= "%s";', $content);
+        return sprintf('$result .= "%s";', $content);
       case 'variable':
         $stripStartingNewLine = false;
-        return sprintf('$_result .= $context->get(\'%s\');', $token['name']);
+        return sprintf('$result .= $context->get(\'%s\');', $token['name']);
       case 'section_start':
         $stripStartingNewLine = true;
         return strtr(
-          '$%name% = $context->getRaw(\'%name%\');
-           if ($%name%) {
-             if (!$context->iterable($%name%)) $%name% = array($%name%);
-             foreach ($%name% as $item) {
-               $context->push($item);', 
+          '$_%name% = $context->getRaw(\'%name%\');
+           if ($_%name%) {
+             if (!$context->iterable($_%name%)) $_%name% = array($_%name%);
+             foreach ($_%name% as $_item) {
+               $context->push($_item);',
           array('%name%' => $token['name'])
         );
       case 'section_end':
