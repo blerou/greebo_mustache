@@ -107,10 +107,17 @@ class Mustache
         return sprintf('$_result .= $context->get(\'%s\');', $token['name']);
       case 'section_start':
         $stripStartingNewLine = true;
-        return sprintf('$_ = $context->getRaw(\'%s\'); if ($_) { $context->push($_);', $token['name']);
+        return strtr(
+          '$%name% = $context->getRaw(\'%name%\');
+           if ($%name%) {
+             if (!$context->iterable($%name%)) $%name% = array($%name%);
+             foreach ($%name% as $item) {
+               $context->push($item);', 
+          array('%name%' => $token['name'])
+        );
       case 'section_end':
         $stripStartingNewLine = true;
-        return sprintf('$context->pop(); }');
+        return sprintf('$context->pop();} }');
       default:
         $stripStartingNewLine = false;
         return '';
@@ -143,25 +150,23 @@ class ContextStack
 
   public function get($name)
   {
-    return call_user_func($this->escaper, $this->getRaw($name));
+    $value = $this->getRaw($name);
+    return call_user_func($this->escaper, $value);
   }
 
   public function getRaw($name)
   {
     foreach ($this->stack as $view) {
       if (is_array($view) && isset($view[$name])) {
-        $value = $view[$name];
+        return $view[$name];
       } else if (is_object($view) && method_exists($view, $name)) {
-        $value = $view->$name();
+        return $view->$name();
       } else if (is_object($view) && isset($view->$name)) {
-        $value = $view->$name;
-      } else {
-        // no variable found
-        $value = null;
+        return $view->$name;
       }
     }
-
-    return $value;
+    // no variable found
+    return null;
   }
 
   public function push($view)
@@ -174,22 +179,20 @@ class ContextStack
     return array_shift($this->stack);
   }
 
-  public function enumerable($name)
+  public function iterable($var)
   {
-    $value = $this->getRaw($name);
-
-    if ($value instanceof Traversable) {
+    if ($var instanceof \Traversable) {
       return true;
     }
-    if (!is_array($value)) {
+    if (!is_array($var)) {
       return false;
     }
-    if (empty($value)) {
+    if (empty($var)) {
       return true;
     }
-    $textKeys = array_filter(array_keys($value), 'is_string');
+    $textKeys = array_filter(array_keys($var), 'is_string');
 
-    return !empty($textKeys);
+    return empty($textKeys);
 
   }
 }
