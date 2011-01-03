@@ -63,9 +63,9 @@ class Mustache
 
   private function splitTemplate($template, $otag, $ctag)
   {
-    $flags = PREG_SPLIT_DELIM_CAPTURE;// | PREG_SPLIT_NO_EMPTY;
-    $tokenPattern = sprintf('/(%s.+?%s)/', preg_quote($otag, '/'), preg_quote($ctag, '/'));
-    return preg_split($tokenPattern, $template, null, $flags);
+    $flags   = PREG_SPLIT_DELIM_CAPTURE;
+    $pattern = sprintf('/(%s.+?\\}?%s)/', preg_quote($otag, '/'), $ctag, preg_quote($ctag, '/'));
+    return preg_split($pattern, $template, null, $flags);
   }
 
   private function createToken($part, $otag, $ctag)
@@ -79,13 +79,16 @@ class Mustache
           return array('type' => 'end', 'name' => trim(substr($part, 1)));
         case '^':
           return array('type' => 'inverted_section', 'name' => trim(substr($part, 1)));
+        case '{':
+          return array('type' => 'raw_variable', 'name' => trim(substr($part, 1, -1)));
+        case '&':
+          return array('type' => 'raw_variable', 'name' => trim(substr($part, 1)));
         default:
           return array('type' => 'variable', 'name' => $part);
       }
     } else {
       return array('type' => 'content', 'content' => $part);
     }
-    
   }
 
   private function generate($tokens)
@@ -113,6 +116,9 @@ class Mustache
       case 'variable':
         $stripStartingNewLine = false;
         return sprintf('$result .= $context->get(\'%s\');', $token['name']);
+      case 'raw_variable':
+        $stripStartingNewLine = false;
+        return sprintf('$result .= $context->getRaw(\'%s\');', $token['name']);
       case 'section':
         $stripStartingNewLine = true;
         \array_push($endStack, 'section');
