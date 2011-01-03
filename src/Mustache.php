@@ -5,6 +5,7 @@ namespace Greebo\Mustache;
 class Mustache
 {
   private $templatePath = array();
+  private $suffix = '.mustache';
 
   public function render($template, $view, $partials = null)
   {
@@ -41,9 +42,8 @@ class Mustache
 
   private function findTemplate($template)
   {
-    $suffix = '.mustache';
     foreach ($this->templatePath as $path) {
-      $file = sprintf('%s/%s%s', $path, $template, $suffix);
+      $file = sprintf('%s/%s%s', $path, $template, $this->suffix);
       if (file_exists($file)) {
         return $file;
       }
@@ -163,7 +163,7 @@ class Mustache
 
   public function setSuffix($suffix)
   {
-    
+    $this->suffix = '.'.ltrim($suffix, '.');
   }
 }
 
