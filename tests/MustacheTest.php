@@ -484,11 +484,9 @@ EOT;
     <ul>
     </ul>
 </li>
-
-            </ul>
+    </ul>
 </li>
-
-                    <li>
+            <li>
     4
     <ul>
             <li>
@@ -499,17 +497,13 @@ EOT;
     <ul>
     </ul>
 </li>
-
-            </ul>
-</li>
-
-            </ul>
-</li>
-
-            </ul>
-</li>
-
     </ul>
+</li>
+    </ul>
+</li>
+    </ul>
+</li>
+</ul>
 </body>
 </html>
 

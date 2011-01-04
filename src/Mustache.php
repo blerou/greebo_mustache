@@ -6,33 +6,50 @@ class Mustache
 {
   private $templatePath = array();
   private $suffix = '.mustache';
+  private $partialRecursions = 0;
 
   public function render($template, $view, $partials = null)
   {
-    $d = false;//$template == 'template-with-conditional';
+    $generated  = $this->compile($template, $partials);
+    $compileFor = function($context) use($generated) {
+      eval($generated);
+      $stripme = preg_quote('/*__stripme__*/', '/');
+      $patterns = array('/^\s*%s\n/', '/^\s*%s/', '/\s*%s$/', '/\n\s*%s/');
+      foreach ($patterns as $pattern) {
+        $result = preg_replace(sprintf($pattern, $stripme), '', $result);
+      }
+      return $result;
+    };
+
+    return $compileFor(new ContextStack($view));
+  }
+
+  private function compile($template, $partials)
+  {
+    $this->partialRecursions++;
+    if ($this->partialRecursions > 10) {
+      $this->partialRecursions--;
+      return '';
+    }
+
+    $d = $template == 'crazy_recursive';
     if ($this->isTemplateFile($template)) {
       $templatePath = $this->findTemplate($template);
       if (empty($templatePath)) {
+        $this->partialRecursions--;
         return '';
       }
 
       $template = file_get_contents($templatePath);
     }
 
-    $tokens     = $this->tokenize($template);
-    $generated  = $this->generate($tokens);
-    if ($d) { var_dump($tokens, $generated); exit; }
-    $compileFor = function($context) use($generated) {
-      eval($generated);
-      $stripme = preg_quote('/*__stripme__*/', '/');
-      $patterns = array('/^\s*%s\n/', '/^\s*%s/', '/\s*%s$/', '/\n\s*%s/');
-      foreach ($patterns as $pattern) {
-        $result = \preg_replace(sprintf($pattern, $stripme), '', $result);
-      }
-      return $result;
-    };
+    $tokens    = $this->tokenize($template);
+    $generated = $this->generate($tokens, $partials);
+    if ($d) { var_dump($tokens, $generated); }//exit; }
 
-    return $compileFor(new ContextStack($view));
+    $this->partialRecursions--;
+
+    return $generated;
   }
 
   private function isTemplateFile($template)
@@ -102,22 +119,28 @@ class Mustache
       case '=':
         list($otag, $ctag) = preg_split('/ +/', trim($tag, ' ='));
         return array('type' => 'delimiter', 'otag' => $otag, 'ctag' => $ctag);
+      case '>':
+        return array('type' => 'partial', 'name' => trim(substr($tag, 1)));
       default:
         return array('type' => 'variable', 'name' => $tag);
     }
   }
 
-  private function generate($tokens)
+  private function generate($tokens, $partials)
   {
-    $compiled = '$result = "";';
+    if ($this->partialRecursions == 1) {
+      $compiled = '$result = "";';
+    } else {
+      $compiled = '$result .= "";';
+    }
     foreach ($tokens as $token) {
       $compiled .= "\n";
-      $compiled .= $this->generateForToken($token);
+      $compiled .= $this->generateForToken($token, $partials);
     }
     return $compiled;
   }
 
-  private function generateForToken($token)
+  private function generateForToken($token, $partials)
   {
     static $stripStartingNewLine = false;
     switch ($token['type']) {
@@ -164,6 +187,12 @@ class Mustache
       case 'delimiter':
         $stripStartingNewLine = true;
         return '';
+      case 'partial':
+        $partialName = $token['name'];
+        if (isset($partials[$partialName])) {
+          $partialName = $partials[$partialName];
+        }
+        return $this->compile($partialName, $partials);
       default:
         $stripStartingNewLine = false;
         return '';
