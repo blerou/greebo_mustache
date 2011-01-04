@@ -14,7 +14,7 @@ class Mustache
     $compileFor = function($context) use($generated) {
       eval($generated);
       $stripme = preg_quote('/*__stripme__*/', '/');
-      $patterns = array('/^\s*%s\n/', '/^\s*%s/', '/\s*%s$/', '/\n\s*%s/');
+      $patterns = array('/^\s*%s\n/', '/^\s*%s/', '/\s*%s$/', '/\n\s*%s/', '/%s/');
       foreach ($patterns as $pattern) {
         $result = preg_replace(sprintf($pattern, $stripme), '', $result);
       }
@@ -32,7 +32,6 @@ class Mustache
       return '';
     }
 
-    $d = $template == 'crazy_recursive';
     if ($this->isTemplateFile($template)) {
       $templatePath = $this->findTemplate($template);
       if (empty($templatePath)) {
@@ -45,7 +44,6 @@ class Mustache
 
     $tokens    = $this->tokenize($template);
     $generated = $this->generate($tokens, $partials);
-    if ($d) { var_dump($tokens, $generated); }//exit; }
 
     $this->partialRecursions--;
 
@@ -87,7 +85,7 @@ class Mustache
 
         $tokens[] = $tagToken;
         $tokens   = array_merge($tokens, $this->tokenize($content, $otag, $ctag));
-        $tokens[] = array('type' => 'end', 'related' => 'section');
+        $tokens[] = array('type' => 'end', 'related' => 'section', 'name' => $tagToken['name']);
       } else if ($tagToken['type'] == 'delimiter') {
         $otag = $tagToken['otag'];
         $ctag = $tagToken['ctag'];
@@ -107,7 +105,7 @@ class Mustache
       case '#':
         return array('type' => 'section', 'name' => trim(substr($tag, 1)));
       case '/':
-        return array('type' => 'end', 'related' => 'inverted_section');
+        return array('type' => 'end', 'related' => 'inverted_section', 'name' => trim(substr($tag, 1)));
       case '^':
         return array('type' => 'inverted_section', 'name' => trim(substr($tag, 1)));
       case '{':
@@ -159,12 +157,15 @@ class Mustache
         return sprintf('$result .= $context->getRaw(\'%s\');', $token['name']);
       case 'section':
         $stripStartingNewLine = true;
-        return strtr(
-          '$_%name% = $context->getRaw(\'%name%\');
-           if ($_%name%) {
-             if (!$context->iterable($_%name%)) $_%name% = array($_%name%);
-             foreach ($_%name% as $_item) {
-               $context->push($_item);',
+        return strtr('
+$_%name% = $context->getRaw(\'%name%\');
+if ($_%name%) {
+  $section = function($_%name%, $context) {
+    if (!$context->iterable($_%name%)) $_%name% = array($_%name%);
+    $result = "";
+    foreach ($_%name% as $_item) {
+      $context->push($_item);
+          ',
           array('%name%' => $token['name'])
         );
       case 'inverted_section':
@@ -178,7 +179,20 @@ class Mustache
         $stripStartingNewLine = true;
         switch ($token['related']) {
           case 'section':
-            return '$context->pop();} }';
+            return strtr('
+      $context->pop();
+    }
+    return $result;
+  };
+  $section = $section($_%name%, $context);
+  if (is_callable($_%name%)) {
+    $section = $_%name%($section);
+  }
+  $result .= $section;
+}
+              ',
+              array('%name%' => $token['name'])
+            );
           case 'inverted_section':
             return '}';
           default:
@@ -226,7 +240,12 @@ class ContextStack
   public function get($name)
   {
     $value = $this->getRaw($name);
-    return call_user_func($this->escaper, $value);
+
+    if (is_scalar($value)) {
+      return call_user_func($this->escaper, $value);
+    }
+
+    return $value;
   }
 
   public function getRaw($name)
@@ -236,7 +255,7 @@ class ContextStack
         return $view[$name];
       } else if (is_object($view) && method_exists($view, $name)) {
         return $view->$name();
-      } else if (is_object($view) && isset($view->$name)) {
+      } else if (is_object($view) && property_exists($view, $name)) {
         return $view->$name;
       }
     }
@@ -268,6 +287,5 @@ class ContextStack
     $textKeys = array_filter(array_keys($var), 'is_string');
 
     return empty($textKeys);
-
   }
 }
