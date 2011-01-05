@@ -21,14 +21,11 @@ class Mustache
 
   private function compile($template, $partials)
   {
-    $this->partialRecursions++;
-
     if ($this->isTemplateFile($template)) {
       $templatePath = $this->findTemplate($template);
       if (!empty($templatePath)) {
 //        $compiledPath = $templatePath.'.php';
 //        if (is_file($compiled)) {
-//          $this->partialRecursions--;
 //          return file_get_contents($compiledPath);
 //        }
         $template = file_get_contents($templatePath);
@@ -37,8 +34,7 @@ class Mustache
 
     $tokens    = $this->tokenize($template);
     $generated = $this->generate($tokens, $partials);
-
-    $this->partialRecursions--;
+    var_dump($tokens, $generated);
 
 //    if (isset($compiledPath)) {
 //      file_put_contents($compiledPath, $generated);
@@ -77,7 +73,7 @@ class Mustache
 
       $tagToken = $this->createTagToken($tag, $otag, $ctag);
       if ($tagToken['type'] == 'section') {
-        $sectionPattern = sprintf('/(%s\\/%s%s)/s', preg_quote($otag, '/'), $tagToken['name'], preg_quote($ctag, '/'));
+        $sectionPattern = sprintf('/(%s\\/\\s*%s\\s*%s)/s', preg_quote($otag, '/'), $tagToken['name'], preg_quote($ctag, '/'));
         list($content, $tag, $template) = preg_split($sectionPattern, $template, 2, PREG_SPLIT_DELIM_CAPTURE);
 
         $tokens[] = $tagToken;
@@ -122,19 +118,17 @@ class Mustache
 
   private function generate($tokens, $partials)
   {
-    if ($this->partialRecursions == 1) {
-      $compiled = '$result = "";';
-    } else {
-      $compiled = '$result .= "";';
-    }
+    $compiled = '$result = "";';
     foreach ($tokens as $token) {
       $compiled .= "\n";
       $compiled .= $this->generateForToken($token, $partials);
     }
 
+    $this->partialRecursions++;
     if ($this->partialRecursions == 1) {
       $compiled = implode("\n", $this->functions).$compiled;
     }
+    $this->partialRecursions--;
 
     return $compiled;
   }
@@ -149,7 +143,7 @@ class Mustache
           $content = '/*__stripme__*/'.$content;
         }
         $stripStartingNewLine = false;
-        return sprintf('$result .= "%s";', $content);
+        return $content ? sprintf('$result .= "%s";', $content) : '';
       case 'variable':
         $stripStartingNewLine = false;
         return sprintf('$result .= $context->get(\'%s\');', $token['name']);
@@ -167,13 +161,13 @@ if ($_%name%) {
     foreach ($_%name% as $_item) {
       $context->push($_item);
           ',
-          array('%name%' => $token['name'])
+          array('%name%' => $this->createVariableName($token['name']))
         );
       case 'inverted_section':
         $stripStartingNewLine = true;
         return strtr(
           '$_%name% = $context->getRaw(\'%name%\'); if (empty($_%name%)) {',
-          array('%name%' => $token['name'])
+          array('%name%' => $this->createVariableName($token['name']))
         );
       case 'end':
         $stripStartingNewLine = true;
@@ -191,7 +185,7 @@ if ($_%name%) {
   $result .= $section;
 }
               ',
-              array('%name%' => $token['name'])
+              array('%name%' => $this->createVariableName($token['name']))
             );
           case 'inverted_section':
             return '}';
@@ -206,7 +200,7 @@ if ($_%name%) {
         if (isset($partials[$partial])) {
           $partial = $partials[$partial];
         }
-        $partialFunction = '__partial_'.preg_replace('/[^a-z0-9_]/i', '_', $partialName);
+        $partialFunction = '__partial_'.$this->createVariableName($partialName);
         if (!isset($this->partials[$partialFunction])) {
           $this->partials[$partialFunction] = 1;
           $this->functions[$partialFunction] = sprintf(
@@ -219,6 +213,11 @@ if ($_%name%) {
         $stripStartingNewLine = false;
         return '';
     }
+  }
+
+  private function createVariableName($name)
+  {
+    return \preg_replace('/[^a-z0-9_]/i', '_', $name);
   }
 
   private function createCompiler()
@@ -276,6 +275,8 @@ class ContextStack
       } else if (is_object($view) && method_exists($view, $name)) {
         return $view->$name();
       } else if (is_object($view) && property_exists($view, $name)) {
+        return $view->$name;
+      } else if (is_object($view) && !$view instanceof \Closure && isset($view->$name)) {
         return $view->$name;
       }
     }
