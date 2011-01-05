@@ -7,45 +7,42 @@ class Mustache
   private $templatePath = array();
   private $suffix = '.mustache';
   private $partialRecursions = 0;
+  private $partials = array();
+  private $functions = array();
 
-  public function render($template, $view, $partials = null)
+  public function render($template, $view = null, $partials = null)
   {
-    $generated  = $this->compile($template, $partials);
-    $compileFor = function($context) use($generated) {
-      eval($generated);
-      $stripme = preg_quote('/*__stripme__*/', '/');
-      $patterns = array('/^\s*%s\n/', '/^\s*%s/', '/\s*%s$/', '/\n\s*%s/', '/%s/');
-      foreach ($patterns as $pattern) {
-        $result = preg_replace(sprintf($pattern, $stripme), '', $result);
-      }
-      return $result;
-    };
+    $generated = $this->compile($template, $partials);
+    $compile   = $this->createCompiler();
+    $context   = new ContextStack($view);
 
-    return $compileFor(new ContextStack($view));
+    return $compile($generated, $context);
   }
 
   private function compile($template, $partials)
   {
     $this->partialRecursions++;
-    if ($this->partialRecursions > 10) {
-      $this->partialRecursions--;
-      return '';
-    }
 
     if ($this->isTemplateFile($template)) {
       $templatePath = $this->findTemplate($template);
-      if (empty($templatePath)) {
-        $this->partialRecursions--;
-        return '';
+      if (!empty($templatePath)) {
+//        $compiledPath = $templatePath.'.php';
+//        if (is_file($compiled)) {
+//          $this->partialRecursions--;
+//          return file_get_contents($compiledPath);
+//        }
+        $template = file_get_contents($templatePath);
       }
-
-      $template = file_get_contents($templatePath);
     }
 
     $tokens    = $this->tokenize($template);
     $generated = $this->generate($tokens, $partials);
 
     $this->partialRecursions--;
+
+//    if (isset($compiledPath)) {
+//      file_put_contents($compiledPath, $generated);
+//    }
 
     return $generated;
   }
@@ -94,7 +91,6 @@ class Mustache
         $tokens[] = $tagToken;
       }
     }
-
     return $tokens;
   }
 
@@ -120,7 +116,7 @@ class Mustache
       case '>':
         return array('type' => 'partial', 'name' => trim(substr($tag, 1)));
       default:
-        return array('type' => 'variable', 'name' => $tag);
+        return array('type' => 'variable', 'name' => trim($tag));
     }
   }
 
@@ -135,6 +131,11 @@ class Mustache
       $compiled .= "\n";
       $compiled .= $this->generateForToken($token, $partials);
     }
+
+    if ($this->partialRecursions == 1) {
+      $compiled = implode("\n", $this->functions).$compiled;
+    }
+
     return $compiled;
   }
 
@@ -171,8 +172,7 @@ if ($_%name%) {
       case 'inverted_section':
         $stripStartingNewLine = true;
         return strtr(
-          '$_%name% = $context->getRaw(\'%name%\');
-           if (empty($_%name%)) {',
+          '$_%name% = $context->getRaw(\'%name%\'); if (empty($_%name%)) {',
           array('%name%' => $token['name'])
         );
       case 'end':
@@ -202,15 +202,35 @@ if ($_%name%) {
         $stripStartingNewLine = true;
         return '';
       case 'partial':
-        $partialName = $token['name'];
-        if (isset($partials[$partialName])) {
-          $partialName = $partials[$partialName];
+        $partial = $partialName = $token['name'];
+        if (isset($partials[$partial])) {
+          $partial = $partials[$partial];
         }
-        return $this->compile($partialName, $partials);
+        $partialFunction = '__partial_'.preg_replace('/[^a-z0-9_]/i', '_', $partialName);
+        if (!isset($this->partials[$partialFunction])) {
+          $this->partials[$partialFunction] = 1;
+          $this->functions[$partialFunction] = sprintf(
+            'if (!function_exists("%s")) { function %s($context) { %s; return $result; } }',
+            $partialFunction, $partialFunction, $this->compile($partial, $partials)
+          );
+        }
+        return sprintf('$result .= %s($context);', $partialFunction);
       default:
         $stripStartingNewLine = false;
         return '';
     }
+  }
+
+  private function createCompiler()
+  {
+    return function($generated, $context) {
+      eval($generated);
+      $stripme = '/*__stripme__*/';
+      $pattern = '/^\\s*'.preg_quote($stripme, '/').'\\s*(?:\\r\\n|\\n|\\r)/m';
+      $result = preg_replace($pattern, '', $result);
+      $result = str_replace($stripme, '', $result);
+      return $result;
+    };
   }
 
   public function addTemplatePath($path)
