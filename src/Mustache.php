@@ -10,6 +10,11 @@ class Mustache
   private $partials = array();
   private $functions = array();
 
+  public function __construct()
+  {
+    $this->tokenizer = new Tokenizer();
+  }
+
   public function render($template, $view = null, $partials = null)
   {
     $generated = $this->compile($template, $partials);
@@ -32,7 +37,7 @@ class Mustache
       }
     }
 
-    $tokens    = $this->tokenize($template);
+    $tokens    = $this->tokenizer->tokenize($template);
     $generated = $this->generate($tokens, $partials);
     var_dump($tokens, $generated);
 
@@ -57,63 +62,6 @@ class Mustache
       }
     }
     return false;
-  }
-
-  private function tokenize($template, $otag   = '{{', $ctag   = '}}')
-  {
-    $tokens = array();
-    while (true) {
-      $tagPattern = sprintf('/(%s.+?\\}?%s)/s', preg_quote($otag, '/'), preg_quote($ctag, '/'));
-      list($content, $tag, $template) = preg_split($tagPattern, $template, 2, PREG_SPLIT_DELIM_CAPTURE);
-
-      $tokens[] = array('type' => 'content', 'content' => $content);
-      if (!isset($tag)) {
-        break;
-      }
-
-      $tagToken = $this->createTagToken($tag, $otag, $ctag);
-      if ($tagToken['type'] == 'section') {
-        $sectionPattern = sprintf('/(%s\\/\\s*%s\\s*%s)/s', preg_quote($otag, '/'), $tagToken['name'], preg_quote($ctag, '/'));
-        list($content, $tag, $template) = preg_split($sectionPattern, $template, 2, PREG_SPLIT_DELIM_CAPTURE);
-
-        $tokens[] = $tagToken;
-        $tokens   = array_merge($tokens, $this->tokenize($content, $otag, $ctag));
-        $tokens[] = array('type' => 'end', 'related' => 'section', 'name' => $tagToken['name']);
-      } else if ($tagToken['type'] == 'delimiter') {
-        $otag = $tagToken['otag'];
-        $ctag = $tagToken['ctag'];
-        $tokens[] = $tagToken;
-      } else {
-        $tokens[] = $tagToken;
-      }
-    }
-    return $tokens;
-  }
-
-  private function createTagToken($tag, $otag, $ctag)
-  {
-    $tag = substr($tag, strlen($otag), -1*strlen($ctag));
-    switch (substr($tag, 0, 1)) {
-      case '#':
-        return array('type' => 'section', 'name' => trim(substr($tag, 1)));
-      case '/':
-        return array('type' => 'end', 'related' => 'inverted_section', 'name' => trim(substr($tag, 1)));
-      case '^':
-        return array('type' => 'inverted_section', 'name' => trim(substr($tag, 1)));
-      case '{':
-        return array('type' => 'raw_variable', 'name' => trim(substr($tag, 1, -1)));
-      case '&':
-        return array('type' => 'raw_variable', 'name' => trim(substr($tag, 1)));
-      case '!':
-        return array('type' => 'comment');
-      case '=':
-        list($otag, $ctag) = preg_split('/ +/', trim($tag, ' ='));
-        return array('type' => 'delimiter', 'otag' => $otag, 'ctag' => $ctag);
-      case '>':
-        return array('type' => 'partial', 'name' => trim(substr($tag, 1)));
-      default:
-        return array('type' => 'variable', 'name' => trim($tag));
-    }
   }
 
   private function generate($tokens, $partials)
@@ -308,5 +256,65 @@ class ContextStack
     $textKeys = array_filter(array_keys($var), 'is_string');
 
     return empty($textKeys);
+  }
+}
+
+class Tokenizer
+{
+  public function tokenize($template, $otag   = '{{', $ctag   = '}}')
+  {
+    $tokens = array();
+    while (true) {
+      $tagPattern = sprintf('/(%s.+?\\}?%s)/s', preg_quote($otag, '/'), preg_quote($ctag, '/'));
+      list($content, $tag, $template) = preg_split($tagPattern, $template, 2, PREG_SPLIT_DELIM_CAPTURE);
+
+      $tokens[] = array('type' => 'content', 'content' => $content);
+      if (!isset($tag)) {
+        break;
+      }
+
+      $tagToken = $this->createTagToken($tag, $otag, $ctag);
+      if ($tagToken['type'] == 'section') {
+        $sectionPattern = sprintf('/(%s\\/\\s*%s\\s*%s)/s', preg_quote($otag, '/'), $tagToken['name'], preg_quote($ctag, '/'));
+        list($content, $tag, $template) = preg_split($sectionPattern, $template, 2, PREG_SPLIT_DELIM_CAPTURE);
+
+        $tokens[] = $tagToken;
+        $tokens   = array_merge($tokens, $this->tokenize($content, $otag, $ctag));
+        $tokens[] = array('type' => 'end', 'related' => 'section', 'name' => $tagToken['name']);
+      } else if ($tagToken['type'] == 'delimiter') {
+        $otag = $tagToken['otag'];
+        $ctag = $tagToken['ctag'];
+        $tokens[] = $tagToken;
+      } else {
+        $tokens[] = $tagToken;
+      }
+    }
+    return $tokens;
+  }
+
+  private function createTagToken($tag, $otag, $ctag)
+  {
+    $tag = substr($tag, strlen($otag), -1*strlen($ctag));
+    switch (substr($tag, 0, 1)) {
+      case '#':
+        return array('type' => 'section', 'name' => trim(substr($tag, 1)));
+      case '/':
+        return array('type' => 'end', 'related' => 'inverted_section', 'name' => trim(substr($tag, 1)));
+      case '^':
+        return array('type' => 'inverted_section', 'name' => trim(substr($tag, 1)));
+      case '{':
+        return array('type' => 'raw_variable', 'name' => trim(substr($tag, 1, -1)));
+      case '&':
+        return array('type' => 'raw_variable', 'name' => trim(substr($tag, 1)));
+      case '!':
+        return array('type' => 'comment');
+      case '=':
+        list($otag, $ctag) = preg_split('/ +/', trim($tag, ' ='));
+        return array('type' => 'delimiter', 'otag' => $otag, 'ctag' => $ctag);
+      case '>':
+        return array('type' => 'partial', 'name' => trim(substr($tag, 1)));
+      default:
+        return array('type' => 'variable', 'name' => trim($tag));
+    }
   }
 }
