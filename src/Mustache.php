@@ -18,8 +18,11 @@ class Mustache
   public function render($template, $view = null, $partials = null)
   {
     $generated = $this->compile($template, $partials);
-    $compile   = $this->createCompiler();
-    $context   = new ContextStack($view);
+	$context   = new ContextStack($view);
+    $compile   = function($generated, $context) {
+      eval($generated);
+      return $result;
+    };
 
     return $compile($generated, $context);
   }
@@ -77,6 +80,13 @@ class Mustache
       $compiled = implode("\n", $this->functions).$compiled;
     }
     $this->partialRecursions--;
+
+	$compiled .= '
+$stripme = \'/*__stripme__*/\';
+$pattern = \'/^\\\\s*\'.preg_quote($stripme, \'/\').\'\\\\s*(?:\\\\r\\\\n|\\\\n|\\\\r)/m\';
+$result = preg_replace($pattern, \'\', $result);
+$result = str_replace($stripme, \'\', $result);
+';
 
     return $compiled;
   }
@@ -166,18 +176,6 @@ if ($_%name%) {
   private function createVariableName($name)
   {
     return \preg_replace('/[^a-z0-9_]/i', '_', $name);
-  }
-
-  private function createCompiler()
-  {
-    return function($generated, $context) {
-      eval($generated);
-      $stripme = '/*__stripme__*/';
-      $pattern = '/^\\s*'.preg_quote($stripme, '/').'\\s*(?:\\r\\n|\\n|\\r)/m';
-      $result = preg_replace($pattern, '', $result);
-      $result = str_replace($stripme, '', $result);
-      return $result;
-    };
   }
 
   public function addTemplatePath($path)
