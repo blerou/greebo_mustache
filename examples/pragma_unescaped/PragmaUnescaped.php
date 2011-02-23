@@ -5,7 +5,7 @@ class PragmaUnescapedView
 	public $vs = 'Bear > Shark';
 }
 
-class PragmaUnescaped extends \GreeboTest\Mustache\RenderTestTrigger
+class PragmaUnescaped extends \greebo\test\mustache\RenderTestTrigger
 {
   public function __construct($template)
   {

@@ -5,7 +5,7 @@ class PragmasInPartialsView
 	public $say = '< RAWR!! >';
 }
 
-class PragmasInPartials extends \GreeboTest\Mustache\RenderTestTrigger
+class PragmasInPartials extends \greebo\test\mustache\RenderTestTrigger
 {
   public function __construct($template)
   {

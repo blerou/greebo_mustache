@@ -12,7 +12,7 @@ class SimpleView
 	public $in_ca = true;
 };
 
-class Simple extends \GreeboTest\Mustache\RenderTestTrigger
+class Simple extends \greebo\test\mustache\RenderTestTrigger
 {
   public function __construct($template)
   {

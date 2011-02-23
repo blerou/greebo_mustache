@@ -1,7 +1,16 @@
 <?php
+/**
+ * This file is part of greebo mustache.
+ *
+ * @copyright Copyright (c) 2011 Szabolcs Sulik <sulik.szabolcs@gmail.com>
+ * @license   http://www.opensource.org/licenses/mit-license.php
+ */
 
-namespace Greebo\Mustache;
+namespace greebo\mustache;
 
+/**
+ * 
+ */
 class Mustache
 {
   private $templatePath = array();
@@ -189,73 +198,7 @@ if ($_%name%) {
   }
 }
 
-class ContextStack
-{
-  private $stack = array();
 
-  public function __construct($view, $escaper = null)
-  {
-    $this->push($view);
-    if (empty($escaper) || !is_callable($escaper)) {
-      $escaper = function($value) { return htmlentities($value, ENT_COMPAT, 'UTF-8'); };
-    }
-    $this->escaper = $escaper;
-  }
-
-  public function get($name)
-  {
-    $value = $this->getRaw($name);
-
-    if (is_scalar($value)) {
-      return call_user_func($this->escaper, $value);
-    }
-
-    return $value;
-  }
-
-  public function getRaw($name)
-  {
-    foreach ($this->stack as $view) {
-      if (is_array($view) && isset($view[$name])) {
-        return $view[$name];
-      } else if (is_object($view) && method_exists($view, $name)) {
-        return $view->$name();
-      } else if (is_object($view) && property_exists($view, $name)) {
-        return $view->$name;
-      } else if (is_object($view) && !$view instanceof \Closure && isset($view->$name)) {
-        return $view->$name;
-      }
-    }
-    // no variable found
-    return null;
-  }
-
-  public function push($view)
-  {
-    array_unshift($this->stack, $view);
-  }
-
-  public function pop()
-  {
-    return array_shift($this->stack);
-  }
-
-  public function iterable($var)
-  {
-    if ($var instanceof \Traversable) {
-      return true;
-    }
-    if (!is_array($var)) {
-      return false;
-    }
-    if (empty($var)) {
-      return true;
-    }
-    $textKeys = array_filter(array_keys($var), 'is_string');
-
-    return empty($textKeys);
-  }
-}
 
 class Tokenizer
 {
@@ -292,7 +235,7 @@ class Tokenizer
 
   private function createTagToken($tag, $otag, $ctag)
   {
-    $tag = substr($tag, strlen($otag), -1*strlen($ctag));
+    $tag = substr($tag, strlen($otag), -1 * strlen($ctag));
     switch (substr($tag, 0, 1)) {
       case '#':
         return array('type' => 'section', 'name' => trim(substr($tag, 1)));

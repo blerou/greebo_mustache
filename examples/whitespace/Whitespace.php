@@ -8,7 +8,7 @@
  *
  * `{{> tag }}` and `{{> tag}}` and `{{>tag}}` should all be equivalent.
  *
- * @extends \GreeboTest\Mustache\RenderTestTrigger
+ * @extends \greebo\test\mustache\RenderTestTrigger
  */
 class WhitespaceView
 {
@@ -33,7 +33,7 @@ class WhitespaceView
 	}
 }
 
-class Whitespace extends \GreeboTest\Mustache\RenderTestTrigger
+class Whitespace extends \greebo\test\mustache\RenderTestTrigger
 {
   public function __construct($template)
   {

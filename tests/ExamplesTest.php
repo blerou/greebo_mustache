@@ -9,9 +9,9 @@
  * @license    http://www.opensource.org/licenses/mit-license.php he MIT License
  */
 
-namespace GreeboTest\Mustache;
+namespace greebo\test\mustache;
 
-use Greebo\Mustache\Mustache;
+use greebo\mustache\Mustache;
 
 class ExamplesTest extends \PHPUnit_Framework_TestCase
 {

@@ -23,7 +23,7 @@ class GrandParentContextView
 	}
 }
 
-class GrandParentContext extends \GreeboTest\Mustache\RenderTestTrigger
+class GrandParentContext extends \greebo\test\mustache\RenderTestTrigger
 {
   public function __construct($template)
   {

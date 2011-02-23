@@ -19,7 +19,7 @@ class ComplexView
 	}
 }
 
-class Complex extends \GreeboTest\Mustache\RenderTestTrigger
+class Complex extends \greebo\test\mustache\RenderTestTrigger
 {
   public function __construct($template)
   {

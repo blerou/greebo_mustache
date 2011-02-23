@@ -5,7 +5,7 @@ class InvertedSectionView
 	public $repo = array();
 }
 
-class InvertedSection extends \GreeboTest\Mustache\RenderTestTrigger
+class InvertedSection extends \greebo\test\mustache\RenderTestTrigger
 {
   public function __construct($template)
   {

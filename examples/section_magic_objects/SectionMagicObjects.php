@@ -27,7 +27,7 @@ class MagicObjectView
 	}
 }
 
-class SectionMagicObjects extends \GreeboTest\Mustache\RenderTestTrigger
+class SectionMagicObjects extends \greebo\test\mustache\RenderTestTrigger
 {
   public function __construct($template)
   {

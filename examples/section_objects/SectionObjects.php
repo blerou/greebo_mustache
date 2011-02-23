@@ -16,7 +16,7 @@ class SectionObjectView {
 	public $bar = 'As well as the third.';
 }
 
-class SectionObjects extends \GreeboTest\Mustache\RenderTestTrigger
+class SectionObjects extends \greebo\test\mustache\RenderTestTrigger
 {
   public function __construct($template)
   {

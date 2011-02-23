@@ -10,19 +10,23 @@
  */
 
 /** @namespace */
-namespace GreeboTest\Mustache\TestAsset;
+namespace greebo\test\mustache\TestAsset;
 
 /**
- * View containing a nested object
+ * View containing a method
  *
  * @category   Phly
  * @package    phly_mustache
  * @subpackage UnitTests
  */
-class ViewWithNestedObjects
+class ViewWithMethod
 {
-    public function __construct()
+    public $name  = 'Chris';
+    public $value = 1000000;
+    public $in_ca = true;
+
+    public function taxed_value()
     {
-        $this->a = new NestedObject();
+        return $this->value - ($this->value * 0.4);
     }
 }

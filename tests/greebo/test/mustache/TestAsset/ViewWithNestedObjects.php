@@ -10,29 +10,19 @@
  */
 
 /** @namespace */
-namespace GreeboTest\Mustache\TestAsset;
+namespace greebo\test\mustache\TestAsset;
 
 /**
- * View with a nested object
+ * View containing a nested object
  *
  * @category   Phly
  * @package    phly_mustache
  * @subpackage UnitTests
  */
-class NestedObject
+class ViewWithNestedObjects
 {
-    public $title = 'this is an object';
-    public $description = 'one of its attributes is a list';
-
     public function __construct()
     {
-        $item1 = new \stdClass;
-        $item1->label = 'listitem1';
-        $item2 = new \stdClass;
-        $item2->label = 'listitem2';
-        $this->list = array(
-            $item1,
-            $item2,
-        );
+        $this->a = new NestedObject();
     }
 }

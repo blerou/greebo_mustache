@@ -15,7 +15,7 @@ class DelimitersView
 	public $final = "Then, surprisingly, it worked the final time.";
 }
 
-class Delimiters extends \GreeboTest\Mustache\RenderTestTrigger
+class Delimiters extends \greebo\test\mustache\RenderTestTrigger
 {
   public function __construct($template)
   {

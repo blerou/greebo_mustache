@@ -33,7 +33,7 @@ class SectionsNestedView
 	}
 }
 
-class SectionsNested extends \GreeboTest\Mustache\RenderTestTrigger
+class SectionsNested extends \greebo\test\mustache\RenderTestTrigger
 {
   public function __construct($template)
   {

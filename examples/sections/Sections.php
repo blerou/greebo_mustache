@@ -14,7 +14,7 @@ class SectionsView
 	public $final = "Then, surprisingly, it worked the final time.";
 }
 
-class Sections extends \GreeboTest\Mustache\RenderTestTrigger
+class Sections extends \greebo\test\mustache\RenderTestTrigger
 {
   public function __construct($template)
   {

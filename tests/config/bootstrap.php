@@ -1,13 +1,18 @@
 <?php
-// library autoloader
-include __DIR__ . '/../../src/_autoload.php';
 
-// test autoloader
+// test assets
+set_include_path(get_include_path().PATH_SEPARATOR.realpath(__DIR__.'/../'));
+
+// source
+$baseDir = __DIR__ . '/../../src/';
+if (realpath($baseDir)) {
+	set_include_path(get_include_path().PATH_SEPARATOR.$baseDir);
+}
+
 spl_autoload_register(function($class) {
-  if (!preg_match('/^GreeboTest\\\\Mustache\\\\TestAsset/', $class)) {
-    return;
-  }
-  $path = str_replace('GreeboTest\\Mustache\\', '', $class);
-  $file = sprintf('%s/../%s.php', __DIR__, strtr($path, '\\', '/'));
-  include_once $file;
+	if (0 !== strpos($class, 'greebo\\')) {
+		return false;
+	}
+	require_once str_replace('\\', '/', $class).'.php';
+	return true;
 });

@@ -10,7 +10,7 @@
  */
 
 /** @namespace */
-namespace GreeboTest\Mustache\TestAsset;
+namespace greebo\test\mustache\TestAsset;
 
 /**
  * View containing a "higher order" section

@@ -10,25 +10,22 @@
  */
 
 /** @namespace */
-namespace GreeboTest\Mustache\TestAsset;
+namespace greebo\test\mustache\TestAsset;
 
 /**
- * View containing a traversable object
+ * View containing content used by a partial
  *
  * @category   Phly
  * @package    phly_mustache
  * @subpackage UnitTests
  */
-class ViewWithTraversableObject
+class ViewWithObjectForPartial
 {
-    public $name = "Joe's shopping card";
-    public $items;
-
-    public function __construct()
+    public $name = 'Joe';
+    public $winnings;
+    public $value = 1000;
+    public function taxed_value() 
     {
-        $this->items = new \ArrayObject(array(
-            array('item' => 'bananas'),
-            array('item' => 'apples'),
-        ));
+        return $this->value - ($this->value * 0.4);
     }
 }

@@ -1,6 +1,6 @@
 <?php
 
-class PartialsWithViewClass extends \GreeboTest\Mustache\RenderTestTrigger
+class PartialsWithViewClass extends \greebo\test\mustache\RenderTestTrigger
 {
   public function __construct($template)
   {

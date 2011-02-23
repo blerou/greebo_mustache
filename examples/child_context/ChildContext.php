@@ -1,6 +1,6 @@
 <?php
 
-class ChildContext extends \GreeboTest\Mustache\RenderTestTrigger {
+class ChildContext extends \greebo\test\mustache\RenderTestTrigger {
 
   public function __construct($template)
   {

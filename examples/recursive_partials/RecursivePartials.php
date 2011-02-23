@@ -12,7 +12,7 @@ class RecursivePartialsView
 	);
 }
 
-class RecursivePartials extends \GreeboTest\Mustache\RenderTestTrigger
+class RecursivePartials extends \greebo\test\mustache\RenderTestTrigger
 {
   public function __construct($template)
   {

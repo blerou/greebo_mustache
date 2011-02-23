@@ -9,7 +9,7 @@ class DoubleSectionView
 	public $two = "second";
 }
 
-class DoubleSection extends \GreeboTest\Mustache\RenderTestTrigger
+class DoubleSection extends \greebo\test\mustache\RenderTestTrigger
 {
   public function __construct($template)
   {

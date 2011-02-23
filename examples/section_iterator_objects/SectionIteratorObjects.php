@@ -16,7 +16,7 @@ class SectionIteratorObjectsView
 	public $final = "Then, surprisingly, it worked the final time.";
 }
 
-class SectionIteratorObjects extends \GreeboTest\Mustache\RenderTestTrigger
+class SectionIteratorObjects extends \greebo\test\mustache\RenderTestTrigger
 {
   public function __construct($template)
   {

@@ -5,7 +5,7 @@ class UnescapedView
 	public $title = "Bear > Shark";
 }
 
-class Unescaped extends \GreeboTest\Mustache\RenderTestTrigger
+class Unescaped extends \greebo\test\mustache\RenderTestTrigger
 {
   public function __construct($template)
   {

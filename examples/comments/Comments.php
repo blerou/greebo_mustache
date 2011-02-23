@@ -7,7 +7,7 @@ class CommentsView
 	}
 }
 
-class Comments extends \GreeboTest\Mustache\RenderTestTrigger
+class Comments extends \greebo\test\mustache\RenderTestTrigger
 {
 	public function __construct($template)
   {
