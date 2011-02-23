@@ -10,19 +10,17 @@
  */
 
 /** @namespace */
-namespace greebo\test\mustache\TestAsset;
+namespace greebo\mustache\TestAsset;
 
 /**
- * View containing content used by a partial
+ * View intended to be included as part of a partial
  *
  * @category   Phly
  * @package    phly_mustache
  * @subpackage UnitTests
  */
-class ViewWithObjectForPartial
+class PartialView
 {
-    public $name = 'Joe';
-    public $winnings;
     public $value = 1000;
     public function taxed_value() 
     {

@@ -10,25 +10,19 @@
  */
 
 /** @namespace */
-namespace greebo\test\mustache\TestAsset;
+namespace greebo\mustache\TestAsset;
 
 /**
- * View containing a traversable object
+ * View containing a nested object
  *
  * @category   Phly
  * @package    phly_mustache
  * @subpackage UnitTests
  */
-class ViewWithTraversableObject
+class ViewWithNestedObjects
 {
-    public $name = "Joe's shopping card";
-    public $items;
-
     public function __construct()
     {
-        $this->items = new \ArrayObject(array(
-            array('item' => 'bananas'),
-            array('item' => 'apples'),
-        ));
+        $this->a = new NestedObject();
     }
 }

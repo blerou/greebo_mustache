@@ -5,7 +5,7 @@ class EscapedView
 	public $title = '"Bear" > "Shark"';
 }
 
-class Escaped extends \greebo\test\mustache\RenderTestTrigger
+class Escaped extends \greebo\mustache\RenderTestTrigger
 {
   public function __construct($template)
   {

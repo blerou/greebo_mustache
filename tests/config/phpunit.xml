@@ -4,9 +4,6 @@
     </testsuite>
 
     <filter>
-        <blacklist>
-            <directory suffix=".mustache">../templates</directory>
-        </blacklist>
         <whitelist>
             <directory suffix=".php">../../src/</directory>
         </whitelist>

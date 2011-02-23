@@ -9,9 +9,7 @@
  * @license    http://www.opensource.org/licenses/mit-license.php he MIT License
  */
 
-namespace greebo\test\mustache;
-
-use greebo\mustache\Mustache;
+namespace greebo\mustache;
 
 class ExamplesTest extends \PHPUnit_Framework_TestCase
 {
@@ -81,7 +79,7 @@ class ExamplesTest extends \PHPUnit_Framework_TestCase
 	 */
 	public function examplesData()
   {
-		$basedir = dirname(__FILE__) . '/../examples/';
+		$basedir = __DIR__ . '/../../../examples/';
 
 		$cases = array();
 

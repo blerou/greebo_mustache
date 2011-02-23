@@ -9,23 +9,17 @@
  * @license    http://www.opensource.org/licenses/mit-license.php he MIT License
  */
 
-namespace greebo\test\mustache;
-
-use greebo\mustache\Mustache;
+namespace greebo\mustache;
 
 /**
  * Unit tests for Mustache implementation
- *
- * @category   Greebo
- * @package    greeboo_mustache
- * @subpackage UnitTests
  */
 class MustacheTest extends \PHPUnit_Framework_TestCase
 {
     public function setUp()
     {
         $this->mustache = new Mustache();
-        $this->mustache->addTemplatePath(__DIR__ . '/../../../templates');
+        $this->mustache->addTemplatePath(__DIR__.'/templates');
     }
 
     public function testRendersStringTemplates()

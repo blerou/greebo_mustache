@@ -5,7 +5,7 @@ class UTF8UnescapedView
 	public $test = '中文又来啦';
 }
 
-class UTF8Unescaped extends \greebo\test\mustache\RenderTestTrigger
+class UTF8Unescaped extends \greebo\mustache\RenderTestTrigger
 {
   public function __construct($template)
   {

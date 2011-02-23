@@ -5,7 +5,7 @@ class ImplicitIteratorView
 	public $data = array('Donkey Kong', 'Luigi', 'Mario', 'Peach', 'Yoshi');
 }
 
-class ImplicitIterator extends \greebo\test\mustache\RenderTestTrigger
+class ImplicitIterator extends \greebo\mustache\RenderTestTrigger
 {
   public function __construct($template)
   {

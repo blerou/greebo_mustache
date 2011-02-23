@@ -6,7 +6,7 @@ class InvertedDoubleSectionView
 	public $two = 'second';
 }
 
-class InvertedDoubleSection extends \greebo\test\mustache\RenderTestTrigger
+class InvertedDoubleSection extends \greebo\mustache\RenderTestTrigger
 {
   public function __construct($template)
   {

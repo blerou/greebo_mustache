@@ -10,23 +10,20 @@
  */
 
 /** @namespace */
-namespace greebo\test\mustache\TestAsset;
+namespace greebo\mustache\TestAsset;
 
 /**
- * View containing a method
+ * View with an embedded array enumerable for iteration
  *
  * @category   Phly
  * @package    phly_mustache
  * @subpackage UnitTests
  */
-class ViewWithMethod
+class ViewWithArrayEnumerable
 {
-    public $name  = 'Chris';
-    public $value = 1000000;
-    public $in_ca = true;
-
-    public function taxed_value()
-    {
-        return $this->value - ($this->value * 0.4);
-    }
+    public $name = "Joe's shopping card";
+    public $items = array(
+        array('item' => 'bananas'),
+        array('item' => 'apples'),
+    );
 }

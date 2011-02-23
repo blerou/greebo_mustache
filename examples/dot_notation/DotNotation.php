@@ -3,9 +3,9 @@
 /**
  * DotNotation example class. Uses DOT_NOTATION pragma.
  *
- * @extends \greebo\test\mustache\RenderTestTrigger
+ * @extends \greebo\mustache\RenderTestTrigger
  */
-class DotNotation extends \greebo\test\mustache\RenderTestTrigger {
+class DotNotation extends \greebo\mustache\RenderTestTrigger {
 	public $person = array(
 		'name' => array('first' => 'Chris', 'last' => 'Firescythe'),
 		'age' => 24,

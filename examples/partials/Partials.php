@@ -9,7 +9,7 @@ class PartialsView
 	);
 }
 
-class Partials extends \greebo\test\mustache\RenderTestTrigger
+class Partials extends \greebo\mustache\RenderTestTrigger
 {
   public function __construct($template)
   {
