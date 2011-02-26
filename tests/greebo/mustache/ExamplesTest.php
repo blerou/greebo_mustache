@@ -164,10 +164,10 @@ class ExamplesTest extends \PHPUnit_Framework_TestCase
 	}
 
 	/**
-	 * @_test
+	 * @test
 	 * @group sections
 	 * @dataProvider poorlyNestedSectionsData
-	 * @expectedException MustacheException
+	 * @expectedException \greebo\mustache\Exception
 	 */
 	public function poorlyNestedSections($template)
 	{

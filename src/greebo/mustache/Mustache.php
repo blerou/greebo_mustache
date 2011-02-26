@@ -224,6 +224,10 @@ class Tokenizer
 			}
 		}
 
+		if (!empty($this->sectionStack)) {
+			throw new Exception('missing close tag for section "'.$this->sectionStack[0]['name'].'"');
+		}
+
 		return $tokens;
 	}
 
