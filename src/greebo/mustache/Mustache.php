@@ -8,13 +8,8 @@
 
 namespace greebo\mustache;
 
-/**
- * 
- */
 class Mustache
 {
-	private $templatePath = array();
-	private $suffix = '.mustache';
 	private $partialRecursions = 0;
 	private $partials = array();
 	private $functions = array();
@@ -22,6 +17,7 @@ class Mustache
 	public function __construct()
 	{
 		$this->tokenizer = new Tokenizer();
+		$this->templateLoader = new TemplateLoader();
 	}
 
 	public function render($template, $view = null, $partials = null)
@@ -38,33 +34,12 @@ class Mustache
 
 	private function compile($template, $partials)
 	{
-		if ($this->isTemplateFile($template)) {
-			$templatePath = $this->findTemplate($template);
-			if (!empty($templatePath)) {
-				$template = file_get_contents($templatePath);
-			}
-		}
+		$template = $this->templateLoader->loadTemplate($template);
 
 		$tokens = $this->tokenizer->tokenize($template);
 		$generated = $this->generate($tokens, $partials);
 
 		return $generated;
-	}
-
-	private function isTemplateFile($template)
-	{
-		return false === strpos($template, '{{');
-	}
-
-	private function findTemplate($template)
-	{
-		foreach ($this->templatePath as $path) {
-			$file = sprintf('%s/%s%s', $path, $template, $this->suffix);
-			if (file_exists($file)) {
-				return $file;
-			}
-		}
-		return false;
 	}
 
 	private function generate($tokens, $partials)
@@ -180,12 +155,12 @@ if ($_%name%) {
 
 	public function addTemplatePath($path)
 	{
-		$this->templatePath[] = rtrim($path, '/\\');
+		$this->templateLoader->addTemplatePath($path);
 	}
 
 	public function setSuffix($suffix)
 	{
-		$this->suffix = '.' . ltrim($suffix, '.');
+		$this->templateLoader->setSuffix($suffix);
 	}
 }
 
