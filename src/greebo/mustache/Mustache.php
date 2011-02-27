@@ -8,14 +8,25 @@
 
 namespace greebo\mustache;
 
+/**
+ * Mustache class
+ *
+ * @author blerou <sulik.szabolcs@gmail.com>
+ */
 class Mustache
 {
-	public function __construct(array $templatePaths = array(), $suffix = '.mustache')
+	private $generator;
+
+	public function __construct(Generator $generator = null)
 	{
-		$this->generator = new JitGenerator(
-			new Tokenizer(),
-			new TemplateLoader($templatePaths, $suffix)
-		);
+		if (empty($generator)) {
+			$this->generator = new JitGenerator(
+				new Tokenizer(),
+				new TemplateLoader()
+			);
+		} else {
+			$this->generator = $generator;
+		}
 	}
 
 	public function render($template, $view = null, $partials = null)

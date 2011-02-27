@@ -16,7 +16,11 @@ class MustacheTest extends \PHPUnit_Framework_TestCase
 	public function setUp()
 	{
 		$this->templatePath = array(__DIR__ . '/templates');
-		$this->mustache = new Mustache($this->templatePath);
+		$generator = new JitGenerator(
+				new Tokenizer(),
+				new TemplateLoader($this->templatePath)
+		);
+		$this->mustache = new Mustache($generator);
 	}
 
 	public function testRendersStringTemplates()
@@ -316,9 +320,13 @@ EOT;
 
 	public function testAllowsSettingAlternateTemplateSuffix()
 	{
-		$mustache = new Mustache($this->templatePath, 'html');
-		$test = $mustache->render('alternate-suffix', array());
-		$this->assertContains('alternate template suffix', $test);
+		$generator = new JitGenerator(
+				new Tokenizer(),
+				new TemplateLoader($this->templatePath, 'html')
+		);
+		$mustache = new Mustache($generator);
+		$rendered = $mustache->render('alternate-suffix', array());
+		$this->assertContains('alternate template suffix', $rendered);
 	}
 
 	public function testStripsCommentsFromRenderedOutput()

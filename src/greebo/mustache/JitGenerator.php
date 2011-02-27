@@ -14,7 +14,7 @@ namespace greebo\mustache;
  *
  * @author blerou <sulik.szabolcs@gmail.com>
  */
-class JitGenerator
+class JitGenerator implements Generator
 {
 	/**
 	 * @var array stores compiled partial existance
