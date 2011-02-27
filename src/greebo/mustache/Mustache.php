@@ -10,10 +10,12 @@ namespace greebo\mustache;
 
 class Mustache
 {
-	public function __construct()
+	public function __construct(array $templatePaths = array(), $suffix = '.mustache')
 	{
-		$this->templateLoader = new TemplateLoader();
-		$this->generator      = new JitGenerator(new Tokenizer(), $this->templateLoader);
+		$this->generator = new JitGenerator(
+			new Tokenizer(),
+			new TemplateLoader($templatePaths, $suffix)
+		);
 	}
 
 	public function render($template, $view = null, $partials = null)
@@ -26,16 +28,6 @@ class Mustache
 		};
 
 		return $compile($generated, $context);
-	}
-
-	public function addTemplatePath($path)
-	{
-		$this->templateLoader->addTemplatePath($path);
-	}
-
-	public function setSuffix($suffix)
-	{
-		$this->templateLoader->setSuffix($suffix);
 	}
 }
 

@@ -18,12 +18,18 @@ class TemplateLoader
 	/**
 	 * @var array the list of template paths
 	 */
-	private $templatePath = array();
+	private $templatePath;
 
 	/**
 	 * @var string the template extension
 	 */
-	private $suffix = '.mustache';
+	private $suffix;
+
+	public function __construct(array $templatePaths = array(), $suffix = 'mustache')
+	{
+		$this->templatePath = $templatePaths;
+		$this->suffix       = '.' . ltrim($suffix, '.');
+	}
 
 	/**
 	 * loads the template with given name
@@ -58,30 +64,6 @@ class TemplateLoader
 			}
 		}
 		return false;
-	}
-
-	/**
-	 * adds template path to list
-	 *
-	 * @param string $path the template path
-	 *
-	 * @return void
-	 */
-	public function addTemplatePath($path)
-	{
-		$this->templatePath[] = rtrim($path, '/\\');
-	}
-
-	/**
-	 * modifies the extension of the template
-	 *
-	 * @param string $suffix the new template extension
-	 *
-	 * @return void
-	 */
-	public function setSuffix($suffix)
-	{
-		$this->suffix = '.' . ltrim($suffix, '.');
 	}
 }
 
