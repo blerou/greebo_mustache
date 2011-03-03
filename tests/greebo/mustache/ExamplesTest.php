@@ -13,42 +13,13 @@ namespace greebo\mustache;
 
 class ExamplesTest extends \PHPUnit_Framework_TestCase
 {
+	private static $templatePath = '/../../../examples/';
+
 	public function setUp()
 	{
-		$this->mustache = new Mustache();
-	}
-
-	/**
-	 * @test
-	 * @group interpolation
-	 */
-	public function renderWithData()
-	{
-		$result = $this->mustache->render('{{first_name}} {{last_name}}', array('first_name' => 'Charlie', 'last_name' => 'Chaplin'));
-		$this->assertEquals('Charlie Chaplin', $result);
-		$result = $this->mustache->render('{{last_name}}, {{first_name}}', array('first_name' => 'Frank', 'last_name' => 'Zappa'));
-		$this->assertEquals('Zappa, Frank', $result);
-	}
-
-	/**
-	 * @test
-	 * @group partials
-	 */
-	public function renderWithPartials()
-	{
-		$result = $this->mustache->render('{{>stache}}', array('first_name' => 'Charlie', 'last_name' => 'Chaplin'), array('stache' => '{{first_name}} {{last_name}}'));
-		$this->assertEquals('Charlie Chaplin', $result);
-		$result = $this->mustache->render('{{last_name}}, {{first_name}}', array('first_name' => 'Frank', 'last_name' => 'Zappa'));
-		$this->assertEquals('Zappa, Frank', $result);
-	}
-
-	/**
-	 * @test
-	 * @group comments
-	 */
-	public function mustacheShouldAllowNewlinesInCommentsAndAllOtherTags()
-	{
-		$this->assertEquals('', $this->mustache->render("{{! comment \n \t still a comment... }}"));
+		$templateLoader = new TemplateLoader(array(__DIR__.self::$templatePath));
+		$generator      = new JitGenerator(new Tokenizer(), $templateLoader);
+		$this->mustache = new Mustache($generator);
 	}
 
 	/**
@@ -56,10 +27,12 @@ class ExamplesTest extends \PHPUnit_Framework_TestCase
 	 * @group examples
 	 * @dataProvider examplesData
 	 */
-	public function examples($class, $template, $output)
+	public function examples($class, $template, $expected)
 	{
 		$renderTrigger = new $class($template);
-		$this->assertEquals($output, $renderTrigger->__trigger_render($this->mustache), "{$class} rendered poorly");
+		$message       = "{$class} ({$template}) rendered poorly";
+
+		$this->assertEquals($expected, $renderTrigger->__trigger_render($this->mustache), $message);
 	}
 
 	/**
@@ -77,55 +50,30 @@ class ExamplesTest extends \PHPUnit_Framework_TestCase
 	 */
 	public function examplesData()
 	{
-		$basedir = __DIR__ . '/../../../examples/';
+		$cases   = array();
+		$baseDir = \realpath(__DIR__.self::$templatePath);
+		$files   = new \RecursiveDirectoryIterator($baseDir, \RecursiveDirectoryIterator::SKIP_DOTS);
+		foreach ($files as $dir) {
+			$dirPath = $dir->getRealPath();
+			if (!is_dir($dirPath)) continue;
 
-		$cases = array();
+			$dirName = $dir->getBasename();
 
-		$files = new \RecursiveDirectoryIterator($basedir);
-		while ($files->valid()) {
-			$example = $files->getSubPathname();
 			$unimplemented = array('implicit_iterator', 'dot_notation', 'pragma_unescaped', 'pragmas_in_partials');
-			if (\in_array($example, $unimplemented)) {
-				$files->next();
-				continue;
-			}
+			if (\in_array($dirName, $unimplemented)) continue;
 
-			if ($files->hasChildren() && $children = $files->getChildren()) {
-				$class = null;
-				$template = null;
-				$output = null;
+			$className = \str_replace('_', ' ', $dirName);
+			$className = \ucwords($className);
+			$className = \str_replace(' ', '', $className);
 
-				foreach ($children as $file) {
-					if (!$file->isFile())
-						continue;
+			$classPath = "{$dirPath}/{$className}.php";
+			if (!file_exists($classPath)) continue;
 
-					$filename = $file->getPathname();
-					$info = pathinfo($filename);
+			$template = "{$dirName}/{$dirName}";
+			$expected = file_get_contents("{$dirPath}/{$dirName}.txt");
+			include_once($classPath);
 
-					if (isset($info['extension'])) {
-						switch ($info['extension']) {
-							case 'php':
-								$class = $info['filename'];
-								include_once($filename);
-								break;
-
-							case 'mustache':
-								$template = file_get_contents($filename);
-								break;
-
-							case 'txt':
-								$output = file_get_contents($filename);
-								break;
-						}
-					}
-				}
-
-				if (!empty($class)) {
-					$cases[$example] = array($class, $template, $output);
-				}
-			}
-
-			$files->next();
+			$cases[$dirName] = array($className, $template, $expected);
 		}
 		return $cases;
 	}
@@ -133,72 +81,30 @@ class ExamplesTest extends \PHPUnit_Framework_TestCase
 	/**
 	 * @test
 	 * @group delimiters
-	 * @dataProvider delimitersData
 	 */
-	public function crazyDelimiters($template, $view)
+	public function crazyDelimiters()
 	{
-		$this->assertEquals('success', $this->mustache->render($template, $view));
-	}
-
-	public function delimitersData()
-	{
-		return array(
-			array('{{=[[ ]]=}}[[ result ]]', array('result' => 'success')),
-			array('{{=(( ))=}}(( result ))', array('result' => 'success')),
-			array('{{={$ $}=}}{$ result $}', array('result' => 'success')),
-			array('{{=<.. ..>=}}<.. result ..>', array('result' => 'success')),
-			array('{{=^^ ^^}}^^ result ^^', array('result' => 'success')),
-			array('{{=// \\\\}}// result \\\\', array('result' => 'success')),
-		);
-	}
-
-	/**
-	 * @test
-	 * @group delimiters
-	 */
-	public function resetDelimiters()
-	{
-		$this->assertEquals('success', $this->mustache->render('{{=[[ ]]=}}[[ result ]]', array('result' => 'success')));
-		$this->assertEquals('success', $this->mustache->render('{{=<< >>=}}<< result >>', array('result' => 'success')));
-		$this->assertEquals('success', $this->mustache->render('{{=<% %>=}}<% result %>', array('result' => 'success')));
+		$view = array('result' => 'success');
+		$this->assertEquals('success', $this->mustache->render('crazy_delimiters/crazy1', $view));
+		$this->assertEquals('success', $this->mustache->render('crazy_delimiters/crazy2', $view));
+		$this->assertEquals('success', $this->mustache->render('crazy_delimiters/crazy3', $view));
+		$this->assertEquals('success', $this->mustache->render('crazy_delimiters/crazy4', $view));
+		$this->assertEquals('success', $this->mustache->render('crazy_delimiters/crazy5', $view));
+		$this->assertEquals('success', $this->mustache->render('crazy_delimiters/crazy6', $view));
 	}
 
 	/**
 	 * @test
 	 * @group sections
-	 * @dataProvider poorlyNestedSectionsData
 	 * @expectedException \greebo\mustache\Exception
 	 */
-	public function poorlyNestedSections($template)
+	public function poorlyNestedSections()
 	{
-		$this->mustache->render($template);
-	}
-
-	public function poorlyNestedSectionsData()
-	{
-		return array(
-			array('{{#foo}}'),
-			array('{{#foo}}{{/bar}}'),
-			array('{{#foo}}{{#bar}}{{/foo}}'),
-			array('{{#foo}}{{#bar}}{{/foo}}{{/bar}}'),
-			array('{{#foo}}{{/bar}}{{/foo}}'),
-		);
-	}
-
-	/**
-	 * @test
-	 * @group sections
-	 */
-	public function mustacheInjection()
-	{
-		$template = '{{#foo}}{{bar}}{{/foo}}';
-		$view = array(
-			'foo' => true,
-			'bar' => '{{win}}',
-			'win' => 'FAIL',
-		);
-
-		$this->assertEquals('{{win}}', $this->mustache->render($template, $view));
+		$this->assertEquals('success', $this->mustache->render('poorly_nested/template1'));
+		$this->assertEquals('success', $this->mustache->render('poorly_nested/template2'));
+		$this->assertEquals('success', $this->mustache->render('poorly_nested/template3'));
+		$this->assertEquals('success', $this->mustache->render('poorly_nested/template4'));
+		$this->assertEquals('success', $this->mustache->render('poorly_nested/template5'));
 	}
 }
 
@@ -207,7 +113,7 @@ class RenderTestTrigger
 	public function __construct($template, $view = null, $partials = null)
 	{
 		$this->template = $template;
-		$this->view = $view;
+		$this->view     = $view;
 		$this->partials = $partials;
 	}
 

@@ -4,7 +4,7 @@ class PartialsWithViewClass extends \greebo\mustache\RenderTestTrigger
 {
   public function __construct($template)
   {
-    $view = new StdClass();
+    $view       = new StdClass();
 		$view->name = 'ilmich';
 		$view->data = array(
 			array('name' => 'federica', 'age' => 27, 'gender' => 'female'),
@@ -12,7 +12,7 @@ class PartialsWithViewClass extends \greebo\mustache\RenderTestTrigger
 		);
 
 		$partials = array(
-			'children' => "{{#data}}{{name}} - {{age}} - {{gender}}\n{{/data}}",
+			'children' => 'partials_with_view_class/children',
 		);
 
 		parent::__construct($template, $view, $partials);

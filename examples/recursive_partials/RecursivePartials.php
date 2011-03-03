@@ -17,7 +17,7 @@ class RecursivePartials extends \greebo\mustache\RenderTestTrigger
   public function __construct($template)
   {
     $partials = array(
-      'child' => " > {{ name }}{{#child}}{{>child}}{{/child}}",
+      'child' => 'recursive_partials/child',
     );
     parent::__construct($template, new RecursivePartialsView(), $partials);
   }

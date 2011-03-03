@@ -23,41 +23,26 @@ class MustacheTest extends \PHPUnit_Framework_TestCase
 		$this->mustache = new Mustache($generator);
 	}
 
-	public function testRendersStringTemplates()
-	{
-		$test = $this->mustache->render(
-				'Hello {{planet}}',
-				array('planet' => 'World')
-		);
-		$this->assertEquals('Hello World', $test);
-	}
-
 	public function testRendersFileTemplates()
 	{
-		$test = $this->mustache->render('renders-file-templates', array(
-				'planet' => 'World',
-			));
+		$view = array(
+			'planet' => 'World',
+		);
+		$test = $this->mustache->render('renders-file-templates', $view);
 		$this->assertEquals('Hello World', trim($test));
 	}
 
 	public function testCanUseObjectPropertiesForSubstitutions()
 	{
-		$view = new \stdClass;
-		$view->planet = 'World';
-		$test = $this->mustache->render(
-				'Hello {{planet}}',
-				$view
-		);
+		$view = (object) array('planet' => 'World');
+		$test = $this->mustache->render('renders-file-templates', $view);
 		$this->assertEquals('Hello World', $test);
 	}
 
 	public function testCanUseMethodReturnValueForSubstitutions()
 	{
-		$chris = new TestAsset\ViewWithMethod;
-		$test = $this->mustache->render(
-				'template-with-method-substitution',
-				$chris
-		);
+		$chris    = new TestAsset\ViewWithMethod;
+		$test     = $this->mustache->render('template-with-method-substitution', $chris);
 		$expected = <<<EOT
 Hello Chris
 You have just won \$600000!
@@ -67,11 +52,8 @@ EOT;
 
 	public function testTemplateMayUseConditionals()
 	{
-		$chris = new TestAsset\ViewWithMethod;
-		$test = $this->mustache->render(
-				'template-with-conditional',
-				$chris
-		);
+		$chris    = new TestAsset\ViewWithMethod;
+		$test     = $this->mustache->render('template-with-conditional', $chris);
 		$expected = <<<EOT
 Hello Chris
 You have just won \$1000000!
@@ -83,13 +65,10 @@ EOT;
 
 	public function testConditionalIsSkippedIfValueIsFalse()
 	{
-		$chris = new TestAsset\ViewWithMethod;
+		$chris        = new TestAsset\ViewWithMethod;
 		$chris->in_ca = false;
-		$test = $this->mustache->render(
-				'template-with-conditional',
-				$chris
-		);
-		$expected = <<<EOT
+		$test         = $this->mustache->render('template-with-conditional', $chris);
+		$expected     = <<<EOT
 Hello Chris
 You have just won \$1000000!
 
@@ -99,12 +78,9 @@ EOT;
 
 	public function testConditionalIsSkippedIfValueIsEmpty()
 	{
-		$chris = new TestAsset\ViewWithMethod;
+		$chris        = new TestAsset\ViewWithMethod;
 		$chris->in_ca = null;
-		$test = $this->mustache->render(
-				'template-with-conditional',
-				$chris
-		);
+		$test         = $this->mustache->render('template-with-conditional', $chris);
 		$expected = <<<EOT
 Hello Chris
 You have just won \$1000000!
@@ -118,11 +94,8 @@ EOT;
 	 */
 	public function testTemplateIteratesArrays()
 	{
-		$view = new TestAsset\ViewWithArrayEnumerable;
-		$test = $this->mustache->render(
-				'template-with-enumerable',
-				$view
-		);
+		$view     = new TestAsset\ViewWithArrayEnumerable;
+		$test     = $this->mustache->render('template-with-enumerable', $view);
 		$expected = <<<EOT
 Joe's shopping card:
 <ul>
@@ -139,11 +112,8 @@ EOT;
 	 */
 	public function testTemplateIteratesTraversableObjects()
 	{
-		$view = new TestAsset\ViewWithTraversableObject;
-		$test = $this->mustache->render(
-				'template-with-enumerable',
-				$view
-		);
+		$view     = new TestAsset\ViewWithTraversableObject;
+		$test     = $this->mustache->render('template-with-enumerable', $view);
 		$expected = <<<EOT
 Joe's shopping card:
 <ul>
@@ -160,11 +130,8 @@ EOT;
 	 */
 	public function testHigherOrderSectionsRenderInsideOut()
 	{
-		$view = new TestAsset\ViewWithHigherOrderSection();
-		$test = $this->mustache->render(
-				'{{#bolder}}Hi {{name}}.{{/bolder}}',
-				$view
-		);
+		$view     = new TestAsset\ViewWithHigherOrderSection();
+		$test     = $this->mustache->render('template-with-higher-order-section', $view);
 		$expected = <<<EOT
 <b>Hi Tater.</b>
 EOT;
@@ -187,10 +154,7 @@ EOT;
 				),
 			),
 		);
-		$test = $this->mustache->render(
-				'template-with-dereferencing',
-				$view
-		);
+		$test     = $this->mustache->render('template-with-dereferencing', $view);
 		$expected = <<<EOT
     <h1>this is an object</h1>
     <p>one of its attributes is a list</p>
@@ -209,11 +173,8 @@ EOT;
 	 */
 	public function testTemplateWillDereferenceNestedObjects()
 	{
-		$view = new TestAsset\ViewWithNestedObjects;
-		$test = $this->mustache->render(
-				'template-with-dereferencing',
-				$view
-		);
+		$view     = new TestAsset\ViewWithNestedObjects;
+		$test     = $this->mustache->render('template-with-dereferencing', $view);
 		$expected = <<<EOT
     <h1>this is an object</h1>
     <p>one of its attributes is a list</p>
@@ -228,11 +189,8 @@ EOT;
 
 	public function testInvertedSectionsRenderOnEmptyValues()
 	{
-		$view = array('repo' => array());
-		$test = $this->mustache->render(
-				'template-with-inverted-section',
-				$view
-		);
+		$view     = array('repo' => array());
+		$test     = $this->mustache->render('template-with-inverted-section', $view);
 		$expected = 'No repos';
 		$this->assertEquals($expected, trim($test));
 	}
@@ -242,11 +200,8 @@ EOT;
 	 */
 	public function testRendersPartials()
 	{
-		$view = new TestAsset\ViewWithObjectForPartial();
-		$test = $this->mustache->render(
-				'template-with-partial',
-				$view
-		);
+		$view     = new TestAsset\ViewWithObjectForPartial();
+		$test     = $this->mustache->render('template-with-partial', $view);
 		$expected = 'Welcome, Joe! You just won $1000 (which is $600 after tax)';
 		$this->assertEquals($expected, trim($test));
 	}
@@ -256,12 +211,9 @@ EOT;
 	 */
 	public function testAllowsAliasingPartials()
 	{
-		$view = new TestAsset\ViewWithObjectForPartial();
-		$test = $this->mustache->render(
-				'template-with-aliased-partial',
-				$view,
-				array('winnings' => 'partial-template')
-		);
+		$view     = new TestAsset\ViewWithObjectForPartial();
+		$partials = array('winnings' => 'partial-template');
+		$test     = $this->mustache->render('template-with-aliased-partial', $view, $partials);
 		$expected = 'Welcome, Joe! You just won $1000 (which is $600 after tax)';
 		$this->assertEquals($expected, trim($test));
 	}
@@ -269,20 +221,14 @@ EOT;
 	public function testEscapesStandardCharacters()
 	{
 		$view = array('foo' => 't&h\\e"s<e>');
-		$test = $this->mustache->render(
-				'{{foo}}',
-				$view
-		);
+		$test = $this->mustache->render('template-escape', $view);
 		$this->assertEquals('t&amp;h\\e&quot;s&lt;e&gt;', $test);
 	}
 
 	public function testTripleMustachesPreventEscaping()
 	{
 		$view = array('foo' => 't&h\\e"s<e>');
-		$test = $this->mustache->render(
-				'{{{foo}}}',
-				$view
-		);
+		$test = $this->mustache->render('template-unescape', $view);
 		$this->assertEquals('t&h\\e"s<e>', $test);
 	}
 
@@ -300,11 +246,8 @@ EOT;
 	public function testHonorsImplicitIteratorPragma()
 	{
 		$this->renderer->addPragma(new Pragma\ImplicitIterator());
-		$view = array('foo' => array(1, 2, 3, 4, 5, 'french'));
-		$test = $this->mustache->render(
-				'template-with-implicit-iterator',
-				$view
-		);
+		$view     = array('foo' => array(1, 2, 3, 4, 5, 'french'));
+		$test     = $this->mustache->render('template-with-implicit-iterator',$view);
 		$expected = <<<EOT
 
     1
@@ -331,7 +274,7 @@ EOT;
 
 	public function testStripsCommentsFromRenderedOutput()
 	{
-		$test = $this->mustache->render('template-with-comments', array());
+		$test     = $this->mustache->render('template-with-comments', array());
 		$expected = <<<EOT
 First line 
 Second line
@@ -347,7 +290,8 @@ EOT;
 	 */
 	public function testAllowsSpecifyingAlternateDelimiters()
 	{
-		$test = $this->mustache->render('template-with-delim-set', array('substitution' => 'working'));
+		$view     = array('substitution' => 'working');
+		$test     = $this->mustache->render('template-with-delim-set', $view);
 		$expected = <<<EOT
 This is content, working, from new delimiters.
 
@@ -360,13 +304,14 @@ EOT;
 	 */
 	public function testAlternateDelimitersSetInSectionOnlyApplyToThatSection()
 	{
-		$test = $this->mustache->render('template-with-delim-set-in-section', array(
-				'content' => 'style',
-				'section' => array(
-					'name' => '-World',
-				),
-				'postcontent' => 'P.S. Done',
-			));
+		$view = array(
+			'content' => 'style',
+			'section' => array(
+				'name' => '-World',
+			),
+			'postcontent' => 'P.S. Done',
+		);
+		$test = $this->mustache->render('template-with-delim-set-in-section', $view);
 		$expected = <<<EOT
 Some text with style
     -World
@@ -381,7 +326,8 @@ EOT;
 	 */
 	public function testAlternateDelimitersApplyToChildSections()
 	{
-		$test = $this->mustache->render('template-with-sections-and-delim-set', array('content' => 'style', 'substitution' => array('name' => '-World')));
+		$view     = array('content' => 'style', 'substitution' => array('name' => '-World'));
+		$test     = $this->mustache->render('template-with-sections-and-delim-set', $view);
 		$expected = <<<EOT
 Some text with style
     -World
@@ -395,11 +341,12 @@ EOT;
 	 */
 	public function testAlternateDelimitersDoNotCarryToPartials()
 	{
-		$test = $this->mustache->render('template-with-partials-and-delim-set', array(
-				'substitution' => 'style',
-				'value' => 1000000,
-				'taxed_value' => 400000,
-			));
+		$view = array(
+			'substitution' => 'style',
+			'value' => 1000000,
+			'taxed_value' => 400000,
+		);
+		$test = $this->mustache->render('template-with-partials-and-delim-set', $view);
 		$expected = <<<EOT
 This is content, style, from new delimiters.
 You just won $1000000 (which is $400000 after tax)
@@ -415,15 +362,16 @@ EOT;
 	public function testPragmasAreSectionSpecific()
 	{
 		$this->renderer->addPragma(new Pragma\ImplicitIterator());
-		$test = $this->mustache->render('template-with-pragma-in-section', array(
-				'type' => 'style',
-				'section' => array(
-					'subsection' => array(1, 2, 3),
-				),
-				'section2' => array(
-					'subsection' => array(1, 2, 3),
-				),
-			));
+		$view = array(
+			'type' => 'style',
+			'section' => array(
+				'subsection' => array(1, 2, 3),
+			),
+			'section2' => array(
+				'subsection' => array(1, 2, 3),
+			),
+		);
+		$test = $this->mustache->render('template-with-pragma-in-section', $view);
 		$this->assertEquals(1, substr_count($test, '1'), $test);
 		$this->assertEquals(1, substr_count($test, '2'), $test);
 		$this->assertEquals(1, substr_count($test, '3'), $test);
@@ -436,12 +384,13 @@ EOT;
 	public function testPragmasDoNotExtendToPartials()
 	{
 		$this->renderer->addPragma(new Pragma\ImplicitIterator());
-		$test = $this->mustache->render('template-with-pragma-and-partial', array(
-				'type' => 'style',
-				'section' => array(
-					'subsection' => array(1, 2, 3),
-				),
-			));
+		$view = array(
+			'type' => 'style',
+			'section' => array(
+				'subsection' => array(1, 2, 3),
+			),
+		);
+		$test = $this->mustache->render('template-with-pragma-and-partial', $view);
 		$this->assertEquals(1, substr_count($test, 'Some content, with style'));
 		$this->assertEquals(1, substr_count($test, 'This is from the partial'));
 		$this->assertEquals(0, substr_count($test, '1'));
@@ -466,8 +415,8 @@ EOT;
 	 */
 	public function testLexerStripsUnwantedWhitespaceFromTokens()
 	{
-		$view = $this->getRecursiveView();
-		$test = $this->mustache->render('crazy_recursive', $view);
+		$view     = $this->getRecursiveView();
+		$test     = $this->mustache->render('crazy_recursive', $view);
 		$expected = <<<EOT
 <html>
 <body>

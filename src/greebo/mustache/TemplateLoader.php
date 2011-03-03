@@ -25,6 +25,12 @@ class TemplateLoader
 	 */
 	private $suffix;
 
+	/**
+	 * Constructor
+	 *
+	 * @param array  $templatePaths the template paths
+	 * @param string $suffix        the template extension
+	 */
 	public function __construct(array $templatePaths = array(), $suffix = 'mustache')
 	{
 		$this->templatePath = $templatePaths;
@@ -37,22 +43,11 @@ class TemplateLoader
 	 * @param string $template the template name
 	 *
 	 * @return string
+	 * @throws Exception
 	 */
 	public function loadTemplate($template)
 	{
-		if ($this->isTemplateFile($template)) {
-			$templatePath = $this->findTemplate($template);
-			if (!empty($templatePath)) {
-				$template = file_get_contents($templatePath);
-			}
-		}
-
-		return $template;
-	}
-
-	private function isTemplateFile($template)
-	{
-		return false === strpos($template, '{{');
+		return file_get_contents($this->findTemplate($template));
 	}
 
 	private function findTemplate($template)
@@ -63,7 +58,8 @@ class TemplateLoader
 				return $file;
 			}
 		}
-		return false;
+
+		throw new Exception();
 	}
 }
 

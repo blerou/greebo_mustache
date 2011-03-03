@@ -20,25 +20,26 @@ class Mustache
 	public function __construct(Generator $generator = null)
 	{
 		if (empty($generator)) {
-			$this->generator = new JitGenerator(
+			$generator = new JitGenerator(
 				new Tokenizer(),
 				new TemplateLoader()
 			);
-		} else {
-			$this->generator = $generator;
 		}
+
+		$this->generator = $generator;
 	}
 
 	public function render($template, $view = null, $partials = null)
 	{
-		$generated = $this->generator->compile($template, $partials);
-		$context   = new ContextStack($view);
-		$compile   = function($generated, $context) {
+		$compiler = function($generated, $context) {
 			eval($generated);
 			return $result;
 		};
 
-		return $compile($generated, $context);
+		$context = new ContextStack($this->generator, $compiler, $partials);
+		$context->push($view);
+
+		return $context->renderTemplate($template);
 	}
 }
 

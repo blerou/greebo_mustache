@@ -41,8 +41,9 @@ class JitGenerator implements Generator
 	/**
 	 * compiles the given template and use the given partials' definition
 	 *
-	 * @param string $template the template
-	 * @param array  $partials the partials' definition
+	 * @param string       $template the template
+	 * @param array        $partials the partials' definition
+	 * @param ContextStack $context  the view context object
 	 *
 	 * @return string
 	 */
@@ -51,7 +52,7 @@ class JitGenerator implements Generator
 		$template = $this->templateLoader->loadTemplate($template);
 		$tokens   = $this->tokenizer->tokenize($template);
 
-		return  $this->generate($tokens, $partials);
+		return  $this->generate($tokens, $partials, $context);
 	}
 
 	private function generate($tokens, $partials)
@@ -136,19 +137,11 @@ if ($_%name%) {
 				$stripStartingNewLine = true;
 				return '';
 			case 'partial':
-				$partial = $partialName = $token['name'];
-				if (isset($partials[$partial])) {
-					$partial = $partials[$partial];
+				$partialName = $token['name'];
+				if (isset($partials[$partialName])) {
+					$partialName = $partials[$partialName];
 				}
-				$partialFunction = '__partial_' . $this->createVariableName($partialName);
-				if (!isset($this->isPartialExists[$partialFunction])) {
-					$this->isPartialExists[$partialFunction] = 1;
-					$this->partialFunctions[$partialFunction] = sprintf(
-							'if (!function_exists("%s")) { function %s($context) { %s; return $result; } }',
-							$partialFunction, $partialFunction, $this->compile($partial, $partials)
-					);
-				}
-				return sprintf('$result .= %s($context);', $partialFunction);
+				return sprintf('$result .= $context->renderTemplate(\'%s\');', $partialName);
 			default:
 				$stripStartingNewLine = false;
 				return '';

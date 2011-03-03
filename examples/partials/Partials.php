@@ -14,9 +14,8 @@ class Partials extends \greebo\mustache\RenderTestTrigger
   public function __construct($template)
   {
     $partials = array(
-      'children' => "{{#data}}{{name}} - {{age}} - {{gender}}\n{{/data}}",
+      'children' => 'partials/children',
     );
     parent::__construct($template, new PartialsView(), $partials);
   }
 }
-

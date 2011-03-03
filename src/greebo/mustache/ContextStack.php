@@ -16,25 +16,33 @@ namespace greebo\mustache;
 class ContextStack
 {
 	/**
+	 * @var Generator the generator object
+	 */
+	private $generator;
+
+	/**
 	 * @var array the stack itself
 	 */
 	private $stack = array();
 
 	/**
+	 * @var \Closure the escaper function
+	 */
+	private $escaper;
+
+	/**
 	 * Constructor
 	 *
-	 * @param mixed $view    an array or an object of the view variables
-	 * @param mixed $escaper a callable that escapes well
+	 * @param Generator $generator the generator object
 	 */
-	public function __construct($view, $escaper = null)
+	public function __construct(Generator $generator, $compliler, $patrials)
 	{
-		$this->push($view);
-		if (empty($escaper) || !is_callable($escaper)) {
-			$escaper = function($value) {
-					return htmlentities($value, ENT_COMPAT, 'UTF-8');
-				};
-		}
-		$this->escaper = $escaper;
+		$this->generator = $generator;
+		$this->compiler  = $compliler;
+		$this->partials  = $patrials;
+		$this->escaper   = function($value) {
+			return htmlentities($value, ENT_COMPAT, 'UTF-8');
+		};
 	}
 
 	/**
@@ -121,6 +129,20 @@ class ContextStack
 		return empty($textKeys);
 	}
 
+	/**
+	 * renders the given template
+	 *
+	 * @param string $template the template name
+	 * 
+	 * @return string
+	 */
+	public function renderTemplate($template)
+	{
+		$generated = $this->generator->compile($template, $this->partials);
+		$compiler  = $this->compiler;
+
+		return $compiler($generated, $this);
+	}
 }
 
 ?>
