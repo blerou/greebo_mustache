@@ -65,5 +65,7 @@ This implementation "generates" PHP template from .mustache file and then run in
 See Also
 --------
 
+ * [Mustache.php - the first implementation](https://github.com/bobthecow/mustache.php)
+ * [phly_mustache - Matthew Weier O'Phinney's implementation, in object oriented way](https://github.com/weierophinney/phly_mustache)
  * [Readme for the Ruby Mustache implementation](http://github.com/defunkt/mustache/blob/master/README.md).
  * [mustache(1)](http://defunkt.github.com/mustache/mustache.1.html) and [mustache(5)](http://defunkt.github.com/mustache/mustache.5.html) man pages.
