@@ -12,9 +12,9 @@ A quick example:
     <?php
 		$templateLoader = new TemplateLoader();
 		$templateLoader->addTemplatePath(TEMPLATE_PATH);
-    $mustache = new Mustache(new JitGenerator(), $templateLoader);
+		$mustache = new Mustache(new JitGenerator(), $templateLoader);
 
-    echo $mustache->render(TEMPLATE_NAME, array('planet' => 'World!'));
+		echo $mustache->render(TEMPLATE_NAME, array('planet' => 'World!'));
     // "Hello World!"
     ?>
 
@@ -48,9 +48,9 @@ Render it like so:
     <?php
 		$templateLoader = new TemplateLoader();
 		$templateLoader->addTemplatePath(TEMPLATE_PATH_TO_CHRIS);
-    $mustache = new Mustache(new JitGenerator(), $templateLoader);
+		$mustache = new Mustache(new JitGenerator(), $templateLoader);
 
-    echo $mustache->render('chris', new Chris());
+		echo $mustache->render('chris', new Chris());
     ?>
 
 
