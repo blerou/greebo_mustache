@@ -18,12 +18,13 @@ interface Generator
 	/**
 	 * compiles the given template and use the given partials' definition
 	 *
-	 * @param string $template the template
-	 * @param array  $partials the partials' definition
+	 * @param string         $template       the template
+	 * @param array          $partials       the partials' definition
+	 * @param TemplateLoader $templateLoader the template loader object
 	 *
 	 * @return string
 	 */
-	public function compile($template, $partials);
+	public function compile($template, $partials, $templateLoader);
 }
 
 ?>

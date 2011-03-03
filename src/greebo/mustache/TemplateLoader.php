@@ -18,24 +18,12 @@ class TemplateLoader
 	/**
 	 * @var array the list of template paths
 	 */
-	private $templatePath;
+	private $templatePath = array();
 
 	/**
 	 * @var string the template extension
 	 */
-	private $suffix;
-
-	/**
-	 * Constructor
-	 *
-	 * @param array  $templatePaths the template paths
-	 * @param string $suffix        the template extension
-	 */
-	public function __construct(array $templatePaths = array(), $suffix = 'mustache')
-	{
-		$this->templatePath = $templatePaths;
-		$this->suffix       = '.' . ltrim($suffix, '.');
-	}
+	private $extension = 'mustache';
 
 	/**
 	 * loads the template with given name
@@ -53,13 +41,37 @@ class TemplateLoader
 	private function findTemplate($template)
 	{
 		foreach ($this->templatePath as $path) {
-			$file = sprintf('%s/%s%s', $path, $template, $this->suffix);
+			$file = sprintf('%s/%s.%s', $path, $template, $this->extension);
 			if (file_exists($file)) {
 				return $file;
 			}
 		}
 
 		throw new Exception();
+	}
+
+	/**
+	 * adds a new template path to the set
+	 *
+	 * @param string $templatePath the template path
+	 *
+	 * @return void
+	 */
+	public function addTemplatePath($templatePath)
+	{
+		$this->templatePath[] = $templatePath;
+	}
+
+	/**
+	 * changes the template extension
+	 *
+	 * @param string $extension the new extenstion
+	 *
+	 * @return void
+	 */
+	public function setExtension($extension)
+	{
+		$this->extension = ltrim($extension, '.');
 	}
 }
 

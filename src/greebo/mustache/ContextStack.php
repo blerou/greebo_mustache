@@ -21,6 +21,16 @@ class ContextStack
 	private $generator;
 
 	/**
+	 * @var TemplateLoader the template loader object
+	 */
+	private $templateLoader;
+
+	/**
+	 * @var \Closure the compiler function
+	 */
+	private $compiler;
+
+	/**
 	 * @var array the stack itself
 	 */
 	private $stack = array();
@@ -35,12 +45,13 @@ class ContextStack
 	 *
 	 * @param Generator $generator the generator object
 	 */
-	public function __construct(Generator $generator, $compliler, $patrials)
+	public function __construct(Generator $generator, TemplateLoader $templateLoader, \Closure $compliler, $patrials)
 	{
-		$this->generator = $generator;
-		$this->compiler  = $compliler;
-		$this->partials  = $patrials;
-		$this->escaper   = function($value) {
+		$this->generator      = $generator;
+		$this->templateLoader = $templateLoader;
+		$this->compiler       = $compliler;
+		$this->partials       = $patrials;
+		$this->escaper        = function($value) {
 			return htmlentities($value, ENT_COMPAT, 'UTF-8');
 		};
 	}
@@ -138,7 +149,7 @@ class ContextStack
 	 */
 	public function renderTemplate($template)
 	{
-		$generated = $this->generator->compile($template, $this->partials);
+		$generated = $this->generator->compile($template, $this->partials, $this->templateLoader);
 		$compiler  = $this->compiler;
 
 		return $compiler($generated, $this);

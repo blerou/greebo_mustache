@@ -15,28 +15,45 @@ namespace greebo\mustache;
  */
 class Mustache
 {
+	/**
+	 * @var Generator the template generator object
+	 */
 	private $generator;
 
-	public function __construct(Generator $generator = null)
-	{
-		if (empty($generator)) {
-			$generator = new JitGenerator(
-				new Tokenizer(),
-				new TemplateLoader()
-			);
-		}
+	/**
+	 * @var TemplateLoader the template loader object
+	 */
+	private $templateLoader;
 
-		$this->generator = $generator;
+	/**
+	 * Constructor
+	 *
+	 * @param Generator      $generator      the template generator object
+	 * @param TemplateLoader $templateLoader the template loader object
+	 */
+	public function __construct(Generator $generator, $templateLoader)
+	{
+		$this->generator      = $generator;
+		$this->templateLoader = $templateLoader;
 	}
 
-	public function render($template, $view = null, $partials = null)
+	/**
+	 * renders the template in the given context
+	 *
+	 * @param string $template the template name
+	 * @param mixed  $view     the view
+	 * @param array  $partials the partials
+	 *
+	 * @return string
+	 */
+	public function render($template, $view = null, array $partials = null)
 	{
 		$compiler = function($generated, $context) {
 			eval($generated);
 			return $result;
 		};
 
-		$context = new ContextStack($this->generator, $compiler, $partials);
+		$context = new ContextStack($this->generator, $this->templateLoader, $compiler, $partials);
 		$context->push($view);
 
 		return $context->renderTemplate($template);

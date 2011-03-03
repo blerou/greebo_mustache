@@ -17,9 +17,9 @@ class ExamplesTest extends \PHPUnit_Framework_TestCase
 
 	public function setUp()
 	{
-		$templateLoader = new TemplateLoader(array(__DIR__.self::$templatePath));
-		$generator      = new JitGenerator(new Tokenizer(), $templateLoader);
-		$this->mustache = new Mustache($generator);
+		$this->templateLoader = new TemplateLoader();
+		$this->templateLoader->addTemplatePath(realpath(__DIR__.self::$templatePath));
+		$this->mustache = new Mustache(new JitGenerator(), $this->templateLoader);
 	}
 
 	/**

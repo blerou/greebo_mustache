@@ -17,39 +17,30 @@ namespace greebo\mustache;
 class JitGenerator implements Generator
 {
 	/**
-	 * @var array stores compiled partial existance
+	 * @var Tokenizer the tokenizer object
 	 */
-	private $isPartialExists = array();
-
-	/**
-	 * @var array of partial function definition
-	 */
-	private $partialFunctions = array();
+	private $tokenizer;
 
 	/**
 	 * Constructor
-	 *
-	 * @param Tokenizer      $tokenizer      the tokenizer
-	 * @param TemplateLoader $templateLoader the template loader
 	 */
-	public function __construct($tokenizer, $templateLoader)
+	public function __construct()
 	{
-		$this->tokenizer = $tokenizer;
-		$this->templateLoader = $templateLoader;
+		$this->tokenizer = new Tokenizer();
 	}
 
 	/**
 	 * compiles the given template and use the given partials' definition
 	 *
-	 * @param string       $template the template
-	 * @param array        $partials the partials' definition
-	 * @param ContextStack $context  the view context object
+	 * @param string         $template       the template
+	 * @param array          $partials       the partials' definition
+	 * @param TemplateLoader $templateLoader the template loader object
 	 *
 	 * @return string
 	 */
-	public function compile($template, $partials)
+	public function compile($template, $partials, $templateLoader)
 	{
-		$template = $this->templateLoader->loadTemplate($template);
+		$template = $templateLoader->loadTemplate($template);
 		$tokens   = $this->tokenizer->tokenize($template);
 
 		return  $this->generate($tokens, $partials, $context);
@@ -63,7 +54,6 @@ class JitGenerator implements Generator
 			$compiled .= $this->generateForToken($token, $partials);
 		}
 
-		$compiled  = implode("\n", $this->partialFunctions) . $compiled;
 		$compiled .= '
 $stripme = \'/*__stripme__*/\';
 $pattern = \'/^\\\\s*\'.preg_quote($stripme, \'/\').\'\\\\s*(?:\\\\r\\\\n|\\\\n|\\\\r)/m\';
