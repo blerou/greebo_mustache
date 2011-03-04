@@ -49,7 +49,7 @@ class Tokenizer
 			if ($tagToken['type'] == 'section') {
 				array_push($delimiterStack, array($otag, $ctag));
 				$lastSection = $this->createLastSectionEntry($tagToken, $otag, $ctag);
-			} else if ($tagToken['type'] == 'end' && $tagToken['related'] == 'section') {
+			} else if ($tagToken['type'] == 'section_end') {
 				list($otag, $ctag) = array_pop($delimiterStack);
 				$lastSection = empty($this->sectionStack)
 					? null
@@ -112,7 +112,8 @@ class Tokenizer
 				if (empty($lastSection) || $lastSection['name'] != $sectionName) {
 					throw new Exception('invalid section close tag');
 				}
-				return array('type' => 'end', 'related' => $lastSection['type'], 'name' => $sectionName);
+				$type = $lastSection['type'].'_end';
+				return array('type' => $type, 'name' => $sectionName);
 			case '^':
 				$token = array('type' => 'inverted_section', 'name' => trim(substr($tag, 1)));
 				array_unshift($this->sectionStack, $token);

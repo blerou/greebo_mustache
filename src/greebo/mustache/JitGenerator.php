@@ -81,21 +81,12 @@ if ($_%name%) {
     if (!$context->iterable($_%name%)) $_%name% = array($_%name%);
     $result = "";
     foreach ($_%name% as $_item) {
-      $context->push($_item);
-          ',
+      $context->push($_item);',
 					array('%name%' => $this->createVariableName($token['name']))
 				);
-			case 'inverted_section':
+			case 'section_end':
 				$stripStartingNewLine = true;
-				return strtr(
-					'$_%name% = $context->getRaw(\'%name%\'); if (empty($_%name%)) {',
-					array('%name%' => $this->createVariableName($token['name']))
-				);
-			case 'end':
-				$stripStartingNewLine = true;
-				switch ($token['related']) {
-					case 'section':
-						return strtr('
+				return strtr('
       $context->pop();
     }
     return $result;
@@ -105,15 +96,18 @@ if ($_%name%) {
     $section = $_%name%($section);
   }
   $result .= $section;
-}
-              ',
-							array('%name%' => $this->createVariableName($token['name']))
-						);
-					case 'inverted_section':
-						return '}';
-					default:
-						return '';
-				}
+}',
+					array('%name%' => $this->createVariableName($token['name']))
+				);
+			case 'inverted_section':
+				$stripStartingNewLine = true;
+				return strtr(
+					'$_%name% = $context->getRaw(\'%name%\'); if (empty($_%name%)) {',
+					array('%name%' => $this->createVariableName($token['name']))
+				);
+			case 'inverted_section_end':
+				$stripStartingNewLine = true;
+				return '}';
 			case 'delimiter':
 				$stripStartingNewLine = true;
 				return '';
