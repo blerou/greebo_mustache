@@ -28,10 +28,12 @@ class ContextStack
 	/**
 	 * Constructor
 	 *
+	 * @param mixed    $view    the view
 	 * @param \Closure $escaper the escaper function
 	 */
-	public function __construct(\Closure $escaper = null)
+	public function __construct($view, \Closure $escaper = null)
 	{
+		$this->push($view);
 		if (empty($escaper)) {
 			$escaper = function($value) {
 				return htmlentities($value, ENT_COMPAT, 'UTF-8');

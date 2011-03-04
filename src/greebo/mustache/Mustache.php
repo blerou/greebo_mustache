@@ -49,8 +49,7 @@ class Mustache
 	public function render($template, $view = null, array $partials = null)
 	{
 		$renderer = new Renderer($this->generator, $this->templateLoader, $partials);
-		$context  = new ContextStack();
-		$context->push($view);
+		$context  = new ContextStack($view);
 
 		return $renderer->renderTemplate($template, $context);
 	}
