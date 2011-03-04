@@ -149,10 +149,20 @@ class ContextStack
 	 */
 	public function renderTemplate($template)
 	{
-		$generated = $this->generator->compile($template, $this->partials, $this->templateLoader);
+		$template  = $this->templateLoader->loadTemplate($template);
+		$generated = $this->generator->generate($template);
 		$compiler  = $this->compiler;
 
 		return $compiler($generated, $this);
+	}
+
+	public function renderPartial($partial)
+	{
+		if (isset($this->partials[$partial])) {
+			$partial = $this->partials[$partial];
+		}
+
+		return $this->renderTemplate($partial);
 	}
 }
 

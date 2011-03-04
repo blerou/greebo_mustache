@@ -30,28 +30,19 @@ class JitGenerator implements Generator
 	}
 
 	/**
-	 * compiles the given template and use the given partials' definition
+	 * generates php template
 	 *
-	 * @param string         $template       the template
-	 * @param array          $partials       the partials' definition
-	 * @param TemplateLoader $templateLoader the template loader object
+	 * @param string $template the template
 	 *
 	 * @return string
 	 */
-	public function compile($template, $partials, $templateLoader)
+	public function generate($template)
 	{
-		$template = $templateLoader->loadTemplate($template);
 		$tokens   = $this->tokenizer->tokenize($template);
-
-		return  $this->generate($tokens, $partials, $context);
-	}
-
-	private function generate($tokens, $partials)
-	{
 		$compiled = '$result = "";';
 		foreach ($tokens as $token) {
 			$compiled .= "\n";
-			$compiled .= $this->generateForToken($token, $partials);
+			$compiled .= $this->generateForToken($token);
 		}
 
 		$compiled .= '
@@ -64,7 +55,7 @@ $result = str_replace($stripme, \'\', $result);
 		return $compiled;
 	}
 
-	private function generateForToken($token, $partials)
+	private function generateForToken($token)
 	{
 		static $stripStartingNewLine = false;
 		switch ($token['type']) {
@@ -127,11 +118,7 @@ if ($_%name%) {
 				$stripStartingNewLine = true;
 				return '';
 			case 'partial':
-				$partialName = $token['name'];
-				if (isset($partials[$partialName])) {
-					$partialName = $partials[$partialName];
-				}
-				return sprintf('$result .= $context->renderTemplate(\'%s\');', $partialName);
+				return sprintf('$result .= $context->renderPartial(\'%s\');', $token['name']);
 			default:
 				$stripStartingNewLine = false;
 				return '';

@@ -16,15 +16,13 @@ namespace greebo\mustache;
 interface Generator
 {
 	/**
-	 * compiles the given template and use the given partials' definition
+	 * generates php template
 	 *
-	 * @param string         $template       the template
-	 * @param array          $partials       the partials' definition
-	 * @param TemplateLoader $templateLoader the template loader object
+	 * @param string $template the template
 	 *
 	 * @return string
 	 */
-	public function compile($template, $partials, $templateLoader);
+	public function generate($template);
 }
 
 ?>
