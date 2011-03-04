@@ -16,21 +16,6 @@ namespace greebo\mustache;
 class ContextStack
 {
 	/**
-	 * @var Generator the generator object
-	 */
-	private $generator;
-
-	/**
-	 * @var TemplateLoader the template loader object
-	 */
-	private $templateLoader;
-
-	/**
-	 * @var \Closure the compiler function
-	 */
-	private $compiler;
-
-	/**
 	 * @var array the stack itself
 	 */
 	private $stack = array();
@@ -43,17 +28,16 @@ class ContextStack
 	/**
 	 * Constructor
 	 *
-	 * @param Generator $generator the generator object
+	 * @param \Closure $escaper the escaper function
 	 */
-	public function __construct(Generator $generator, TemplateLoader $templateLoader, \Closure $compliler, $patrials)
+	public function __construct(\Closure $escaper = null)
 	{
-		$this->generator      = $generator;
-		$this->templateLoader = $templateLoader;
-		$this->compiler       = $compliler;
-		$this->partials       = $patrials;
-		$this->escaper        = function($value) {
-			return htmlentities($value, ENT_COMPAT, 'UTF-8');
-		};
+		if (empty($escaper)) {
+			$escaper = function($value) {
+				return htmlentities($value, ENT_COMPAT, 'UTF-8');
+			};
+		}
+		$this->escaper = $escaper;
 	}
 
 	/**
@@ -138,31 +122,6 @@ class ContextStack
 		$textKeys = array_filter(array_keys($var), 'is_string');
 
 		return empty($textKeys);
-	}
-
-	/**
-	 * renders the given template
-	 *
-	 * @param string $template the template name
-	 * 
-	 * @return string
-	 */
-	public function renderTemplate($template)
-	{
-		$template  = $this->templateLoader->loadTemplate($template);
-		$generated = $this->generator->generate($template);
-		$compiler  = $this->compiler;
-
-		return $compiler($generated, $this);
-	}
-
-	public function renderPartial($partial)
-	{
-		if (isset($this->partials[$partial])) {
-			$partial = $this->partials[$partial];
-		}
-
-		return $this->renderTemplate($partial);
 	}
 }
 

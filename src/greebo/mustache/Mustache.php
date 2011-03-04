@@ -48,15 +48,11 @@ class Mustache
 	 */
 	public function render($template, $view = null, array $partials = null)
 	{
-		$compiler = function($generated, $context) {
-			eval($generated);
-			return $result;
-		};
-
-		$context = new ContextStack($this->generator, $this->templateLoader, $compiler, $partials);
+		$renderer = new Renderer($this->generator, $this->templateLoader, $partials);
+		$context  = new ContextStack();
 		$context->push($view);
 
-		return $context->renderTemplate($template);
+		return $renderer->renderTemplate($template, $context);
 	}
 }
 

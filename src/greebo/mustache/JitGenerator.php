@@ -77,7 +77,7 @@ $result = str_replace($stripme, \'\', $result);
 				return strtr('
 $_%name% = $context->getRaw(\'%name%\');
 if ($_%name%) {
-  $section = function($_%name%, $context) {
+  $section = function($_%name%, $context, $renderer) {
     if (!$context->iterable($_%name%)) $_%name% = array($_%name%);
     $result = "";
     foreach ($_%name% as $_item) {
@@ -100,7 +100,7 @@ if ($_%name%) {
     }
     return $result;
   };
-  $section = $section($_%name%, $context);
+  $section = $section($_%name%, $context, $renderer);
   if (is_callable($_%name%)) {
     $section = $_%name%($section);
   }
@@ -118,7 +118,7 @@ if ($_%name%) {
 				$stripStartingNewLine = true;
 				return '';
 			case 'partial':
-				return sprintf('$result .= $context->renderPartial(\'%s\');', $token['name']);
+				return sprintf('$result .= $renderer->renderPartial(\'%s\', $context);', $token['name']);
 			default:
 				$stripStartingNewLine = false;
 				return '';
