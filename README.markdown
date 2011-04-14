@@ -10,9 +10,13 @@ Usage
 A quick example:
 
     <?php
-		$templateLoader = new TemplateLoader();
-		$templateLoader->addTemplatePath(TEMPLATE_PATH);
-		$mustache = new Mustache(new JitGenerator(), $templateLoader);
+		// simple construct
+		$mustache = Mustache::create(TEMPLATE_PATH);
+
+		// advanced construct
+		$loader = new TemplateLoader();
+		$loader->addTemplatePath(TEMPLATE_PATH);
+		$mustache = new Mustache(new JitRenderer($loader));
 
 		echo $mustache->render(TEMPLATE_NAME, array('planet' => 'World!'));
     // "Hello World!"
@@ -46,9 +50,7 @@ Along with the associated Mustache class:
 Render it like so:
 
     <?php
-		$templateLoader = new TemplateLoader();
-		$templateLoader->addTemplatePath(TEMPLATE_PATH_TO_CHRIS);
-		$mustache = new Mustache(new JitGenerator(), $templateLoader);
+		$mustache = Mustache::create(TEMPLATE_PATH_TO_CHRIS);
 
 		echo $mustache->render('chris', new Chris());
     ?>

@@ -17,9 +17,7 @@ class ExamplesTest extends \PHPUnit_Framework_TestCase
 
 	public function setUp()
 	{
-		$this->templateLoader = new TemplateLoader();
-		$this->templateLoader->addTemplatePath(realpath(__DIR__.self::$templatePath));
-		$this->mustache = new Mustache(new JitGenerator(), $this->templateLoader);
+		$this->mustache = Mustache::create(__DIR__.self::$templatePath);
 	}
 
 	/**
@@ -51,7 +49,7 @@ class ExamplesTest extends \PHPUnit_Framework_TestCase
 	public function examplesData()
 	{
 		$cases   = array();
-		$baseDir = \realpath(__DIR__.self::$templatePath);
+		$baseDir = realpath(__DIR__.self::$templatePath);
 		$files   = new \RecursiveDirectoryIterator($baseDir, \RecursiveDirectoryIterator::SKIP_DOTS);
 		foreach ($files as $dir) {
 			$dirPath = $dir->getRealPath();
@@ -60,11 +58,11 @@ class ExamplesTest extends \PHPUnit_Framework_TestCase
 			$dirName = $dir->getBasename();
 
 			$unimplemented = array('implicit_iterator', 'dot_notation', 'pragma_unescaped', 'pragmas_in_partials');
-			if (\in_array($dirName, $unimplemented)) continue;
+			if (in_array($dirName, $unimplemented)) continue;
 
-			$className = \str_replace('_', ' ', $dirName);
-			$className = \ucwords($className);
-			$className = \str_replace(' ', '', $className);
+			$className = str_replace('_', ' ', $dirName);
+			$className = ucwords($className);
+			$className = str_replace(' ', '', $className);
 
 			$classPath = "{$dirPath}/{$className}.php";
 			if (!file_exists($classPath)) continue;

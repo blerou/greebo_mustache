@@ -9,86 +9,40 @@
 namespace greebo\mustache;
 
 /**
- * Renderer class
+ * Renderer interface
  *
  * @author blerou <sulik.szabolcs@gmail.com>
  */
-class Renderer
+interface Renderer
 {
 	/**
-	 * @var Generator the generator object
-	 */
-	private $generator;
-
-	/**
-	 * @var TemplateLoader the template loader object
-	 */
-	private $templateLoader;
-
-	/**
-	 * @var array the partial definition map
-	 */
-	private $partials;
-
-	/**
-	 * @var \Closure the compiler function
-	 */
-	private $compiler;
-
-	/**
-	 * Constructor
+	 * set up partial definition
 	 *
-	 * @param Generator      $generator      the generator object
-	 * @param TemplateLoader $templateLoader the template loader
-	 * @param \Closure       $compiler       the compiler function
-	 * @param array          $partials       the partial name resolving map
+	 * @param array $patrials
+	 *
+	 * @return Renderer
 	 */
-	public function __construct(
-		Generator $generator,
-		TemplateLoader $templateLoader,
-		array $patrials = null
-	)
-	{
-		$this->generator      = $generator;
-		$this->templateLoader = $templateLoader;
-		$this->partials       = (array) $patrials;
-		$this->compiler       = function ($generated, $context, $renderer) {
-			eval($generated);
-			return $result;
-		};
-	}
+	public function withPartials(array $patrials = null);
 
 	/**
 	 * renders the given template
 	 *
-	 * @param string $template the template name
+	 * @param string       $template
+	 * @param ContextStack $context
 	 *
 	 * @return string
 	 */
-	public function renderTemplate($template, $context)
-	{
-		$template  = $this->templateLoader->loadTemplate($template);
-		$generated = $this->generator->generate($template);
-		$compiler  = $this->compiler;
-
-		return $compiler($generated, $context, $this);
-	}
+	public function renderTemplate($template, ContextStack $context);
 
 	/**
 	 * renders the given partial
 	 *
-	 * @param string $partial the partial name
+	 * @param string       $partial
+	 * @param ContextStack $context
 	 *
 	 * @return string
 	 */
-	public function renderPartial($partial, $context)
-	{
-		if (isset($this->partials[$partial])) {
-			$partial = $this->partials[$partial];
-		}
-
-		return $this->renderTemplate($partial, $context);
-	}
+	public function renderPartial($partial, ContextStack $context);
 }
 
 ?>

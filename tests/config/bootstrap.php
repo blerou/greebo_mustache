@@ -8,4 +8,5 @@ set_include_path(get_include_path().PATH_SEPARATOR.realpath(__DIR__.'/../'));
 spl_autoload_register(function($class) {
 	if (0 === strpos($class, 'greebo\\mustache\\'))
 		require_once str_replace('\\', '/', $class).'.php';
+	return class_exists($class, false) || interface_exists($class, false);
 });

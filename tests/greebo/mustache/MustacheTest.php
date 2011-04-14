@@ -17,7 +17,7 @@ class MustacheTest extends \PHPUnit_Framework_TestCase
 	{
 		$this->templateLoader = new TemplateLoader();
 		$this->templateLoader->addTemplatePath(__DIR__ . '/templates');
-		$this->mustache = new Mustache(new JitGenerator(), $this->templateLoader);
+		$this->mustache = new Mustache(new JitRenderer($this->templateLoader));
 	}
 
 	public function testRendersFileTemplates()

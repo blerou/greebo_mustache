@@ -21,20 +21,18 @@ class ContextStack
 	private $stack = array();
 
 	/**
-	 * @var \Closure the escaper function
+	 * @var callable the escaper function
 	 */
 	private $escaper;
 
 	/**
 	 * Constructor
 	 *
-	 * @param mixed    $view    the view
-	 * @param \Closure $escaper the escaper function
+	 * @param callable $escaper
 	 */
-	public function __construct($view, \Closure $escaper = null)
+	public function __construct($escaper = null)
 	{
-		$this->push($view);
-		if (empty($escaper)) {
+		if (!is_callable($escaper)) {
 			$escaper = function($value) {
 				return htmlentities($value, ENT_COMPAT, 'UTF-8');
 			};
@@ -45,13 +43,13 @@ class ContextStack
 	/**
 	 * get the escaped value of the given variable
 	 *
-	 * @param string $name the name of the variable
+	 * @param string $variableName
 	 *
 	 * @return mixed
 	 */
-	public function get($name)
+	public function get($variableName)
 	{
-		$value = $this->getRaw($name);
+		$value = $this->getRaw($variableName);
 
 		if (is_scalar($value)) {
 			return call_user_func($this->escaper, $value);
@@ -63,21 +61,21 @@ class ContextStack
 	/**
 	 * get the raw value of the given variable
 	 *
-	 * @param string $name the name of the variable
+	 * @param string $variableName
 	 *
 	 * @return mixed
 	 */
-	public function getRaw($name)
+	public function getRaw($variableName)
 	{
 		foreach ($this->stack as $view) {
-			if (is_array($view) && isset($view[$name])) {
-				return $view[$name];
-			} else if (is_object($view) && method_exists($view, $name)) {
-				return $view->$name();
-			} else if (is_object($view) && property_exists($view, $name)) {
-				return $view->$name;
-			} else if (is_object($view) && !$view instanceof \Closure && isset($view->$name)) {
-				return $view->$name;
+			if (is_array($view) && isset($view[$variableName])) {
+				return $view[$variableName];
+			} else if (is_object($view) && method_exists($view, $variableName)) {
+				return $view->$variableName();
+			} else if (is_object($view) && property_exists($view, $variableName)) {
+				return $view->$variableName;
+			} else if (is_object($view) && !$view instanceof \Closure && isset($view->$variableName)) {
+				return $view->$variableName;
 			}
 		}
 		// no variable found
@@ -87,7 +85,7 @@ class ContextStack
 	/**
 	 * add new "context" to the stack
 	 *
-	 * @param mixed $view an array or an object of the view variables
+	 * @param mixed $view
 	 *
 	 * @return void
 	 */
@@ -97,9 +95,9 @@ class ContextStack
 	}
 
 	/**
-	 * remove "context" from the stack
+	 * remove "context"
 	 *
-	 * @return void
+	 * @return mixed
 	 */
 	public function pop()
 	{
@@ -109,19 +107,19 @@ class ContextStack
 	/**
 	 * determines a variable is iterable or not
 	 *
-	 * @param mixed $var a variable
+	 * @param mixed $variable
 	 *
 	 * @return bool
 	 */
-	public function iterable($var)
+	public function iterable($variable)
 	{
-		if ($var instanceof \Traversable) {
+		if ($variable instanceof \Traversable) {
 			return true;
 		}
-		if (!is_array($var)) {
+		if (!is_array($variable)) {
 			return false;
 		}
-		$textKeys = array_filter(array_keys($var), 'is_string');
+		$textKeys = array_filter(array_keys($variable), 'is_string');
 
 		return empty($textKeys);
 	}

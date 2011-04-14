@@ -23,13 +23,13 @@ class Tokenizer
 	/**
 	 * tokenize the template
 	 *
-	 * @param string $template the template
-	 * @param string $otag     the open tag
-	 * @param string $ctag     the clode tag
+	 * @param string $template
+	 * @param string $openTag
+	 * @param string $closeTag
 	 *
 	 * @return array
 	 */
-	public function tokenize($template, $otag = '{{', $ctag = '}}')
+	public function tokenize($template, $openTag = '{{', $closeTag = '}}')
 	{
 		$this->sectionStack = array();
 		$delimiterStack     = array();
@@ -37,26 +37,26 @@ class Tokenizer
 		$tokens      = array();
 		$lastSection = null;
 		while (true) {
-			list($content, $tag, $template) = $this->splitNextPart($template, $otag, $ctag, $lastSection);
+			list($content, $tag, $template) = $this->splitNextPart($template, $openTag, $closeTag, $lastSection);
 
 			$tokens[] = array('type' => 'content', 'content' => $content);
 			if (!isset($tag)) {
 				break;
 			}
 
-			$tagToken = $this->createTagToken($tag, $otag, $ctag);
+			$tagToken = $this->createTagToken($tag, $openTag, $closeTag);
 			$tokens[] = $tagToken;
 			if ($tagToken['type'] == 'section') {
-				array_push($delimiterStack, array($otag, $ctag));
-				$lastSection = $this->createLastSectionEntry($tagToken, $otag, $ctag);
+				array_push($delimiterStack, array($openTag, $closeTag));
+				$lastSection = $this->createLastSectionEntry($tagToken, $openTag, $closeTag);
 			} else if ($tagToken['type'] == 'section_end') {
-				list($otag, $ctag) = array_pop($delimiterStack);
+				list($openTag, $closeTag) = array_pop($delimiterStack);
 				$lastSection = empty($this->sectionStack)
 					? null
-					: $this->createLastSectionEntry($this->sectionStack[0], $otag, $ctag);
+					: $this->createLastSectionEntry($this->sectionStack[0], $openTag, $closeTag);
 			} else if ($tagToken['type'] == 'delimiter') {
-				$otag = $tagToken['otag'];
-				$ctag = $tagToken['ctag'];
+				$openTag = $tagToken['otag'];
+				$closeTag = $tagToken['ctag'];
 			}
 		}
 
@@ -67,14 +67,14 @@ class Tokenizer
 		return $tokens;
 	}
 
-	private function createLastSectionEntry($token, $otag, $ctag)
+	private function createLastSectionEntry($token, $openTag, $closeTag)
 	{
-		return array($token['name'], $otag, $ctag);
+		return array($token['name'], $openTag, $closeTag);
 	}
 
-	private function splitNextPart($template, $otag, $ctag, $lastSection)
+	private function splitNextPart($template, $openTag, $closeTag, $lastSection)
 	{
-		$byNextToken = $this->splitByNextToken($template, $otag, $ctag);
+		$byNextToken = $this->splitByNextToken($template, $openTag, $closeTag);
 
 		if (empty($lastSection)) {
 			return $byNextToken;
@@ -91,32 +91,32 @@ class Tokenizer
 		}
 	}
 
-	private function splitByNextToken($template, $otag, $ctag, $name = '.+?\\}?')
+	private function splitByNextToken($template, $openTag, $closeTag, $name = '.+?\\}?')
 	{
-		$tagPattern = sprintf('/(%s%s%s)/s', preg_quote($otag, '/'), $name, preg_quote($ctag, '/'));
+		$tagPattern = sprintf('/(%s%s%s)/s', preg_quote($openTag, '/'), $name, preg_quote($closeTag, '/'));
 
 		return preg_split($tagPattern, $template, 2, PREG_SPLIT_DELIM_CAPTURE);
 	}
 
-	private function createTagToken($tag, $otag, $ctag)
+	private function createTagToken($tag, $openTag, $closeTag)
 	{
-		$tag = substr($tag, strlen($otag), -1 * strlen($ctag));
+		$tag = substr($tag, strlen($openTag), -1 * strlen($closeTag));
 		switch (substr($tag, 0, 1)) {
 			case '#':
 				$token = array('type' => 'section', 'name' => trim(substr($tag, 1)));
-				array_unshift($this->sectionStack, $token);
+				array_push($this->sectionStack, $token);
 				return $token;
 			case '/':
 				$sectionName = trim(substr($tag, 1));
-				$lastSection = array_shift($this->sectionStack);
+				$lastSection = array_pop($this->sectionStack);
 				if (empty($lastSection) || $lastSection['name'] != $sectionName) {
-					throw new Exception('invalid section close tag');
+					throw new Exception('invalid section close tag: '.$sectionName);
 				}
 				$type = $lastSection['type'].'_end';
 				return array('type' => $type, 'name' => $sectionName);
 			case '^':
 				$token = array('type' => 'inverted_section', 'name' => trim(substr($tag, 1)));
-				array_unshift($this->sectionStack, $token);
+				array_push($this->sectionStack, $token);
 				return $token;
 			case '{':
 				return array('type' => 'unescaped', 'name' => trim(substr($tag, 1, -1)));
@@ -125,8 +125,8 @@ class Tokenizer
 			case '!':
 				return array('type' => 'comment');
 			case '=':
-				list($otag, $ctag) = preg_split('/ +/', trim($tag, ' ='));
-				return array('type' => 'delimiter', 'otag' => $otag, 'ctag' => $ctag);
+				list($openTag, $closeTag) = preg_split('/ +/', trim($tag, ' ='));
+				return array('type' => 'delimiter', 'otag' => $openTag, 'ctag' => $closeTag);
 			case '>':
 				return array('type' => 'partial', 'name' => trim(substr($tag, 1)));
 			default:

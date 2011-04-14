@@ -16,42 +16,54 @@ namespace greebo\mustache;
 class Mustache
 {
 	/**
-	 * @var Generator the template generator object
+	 * @var Renderer
 	 */
-	private $generator;
-
-	/**
-	 * @var TemplateLoader the template loader object
-	 */
-	private $templateLoader;
+	private $renderer;
 
 	/**
 	 * Constructor
 	 *
-	 * @param Generator      $generator      the template generator object
-	 * @param TemplateLoader $templateLoader the template loader object
+	 * @param Renderer $renderer
 	 */
-	public function __construct(Generator $generator, $templateLoader)
+	public function __construct(Renderer $renderer)
 	{
-		$this->generator      = $generator;
-		$this->templateLoader = $templateLoader;
+		$this->renderer = $renderer;
+	}
+
+	/**
+	 * create default implementation
+	 *
+	 * @param array  $templatePaths
+	 * @param string $extension
+	 * 
+	 * @return Mustache
+	 */
+	public static function create($templatePaths, $extension = null)
+	{
+		$loader = new TemplateLoader();
+		foreach ((array)$templatePaths as $templatePath)
+			$loader->addTemplatePath($templatePath);
+		if ($extension)
+			$loader->setExtension ($extension);
+
+		return new Mustache(new JitRenderer($loader));
 	}
 
 	/**
 	 * renders the template in the given context
 	 *
-	 * @param string $template the template name
-	 * @param mixed  $view     the view
-	 * @param array  $partials the partials
+	 * @param string $template
+	 * @param mixed  $view
+	 * @param array  $partials
 	 *
 	 * @return string
 	 */
 	public function render($template, $view = null, array $partials = null)
 	{
-		$renderer = new Renderer($this->generator, $this->templateLoader, $partials);
-		$context  = new ContextStack($view);
+		$context = new ContextStack();
+		$context->push($view);
 
-		return $renderer->renderTemplate($template, $context);
+		return $this->renderer->withPartials($partials)->renderTemplate($template, $context);
 	}
 }
 

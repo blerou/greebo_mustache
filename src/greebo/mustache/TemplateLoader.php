@@ -28,7 +28,7 @@ class TemplateLoader
 	/**
 	 * loads the template with given name
 	 *
-	 * @param string $template the template name
+	 * @param string $template
 	 *
 	 * @return string
 	 * @throws Exception
@@ -47,13 +47,13 @@ class TemplateLoader
 			}
 		}
 
-		throw new Exception();
+		throw new Exception('No template found: '.$template);
 	}
 
 	/**
 	 * adds a new template path to the set
 	 *
-	 * @param string $templatePath the template path
+	 * @param string $templatePath
 	 *
 	 * @return void
 	 */
@@ -65,7 +65,7 @@ class TemplateLoader
 	/**
 	 * changes the template extension
 	 *
-	 * @param string $extension the new extenstion
+	 * @param string $extension
 	 *
 	 * @return void
 	 */
