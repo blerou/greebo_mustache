@@ -1,5 +1,5 @@
-Mustache.php
-============
+Greebo Mustache
+===============
 
 A [Mustache](http://defunkt.github.com/mustache/) implementation in PHP.
 
