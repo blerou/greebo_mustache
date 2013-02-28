@@ -1,0 +1,20 @@
+{
+    "name": "greebo/mustache",
+    "description": "Mustache templates for PHP",
+    "keywords": ["templating", "mustache"],
+    "homepage": "http://github.com/blerou/greebo_mustache",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Szabolcs Sulik",
+            "email": "sulik.szabolcs@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=5.3.0"
+    },
+    "autoload": {
+        "psr-0": {"Greebo": "src/"}
+    }
+}

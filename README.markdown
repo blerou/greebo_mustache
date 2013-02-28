@@ -1,6 +1,8 @@
 Greebo Mustache
 ===============
 
+[![Build Status](https://secure.travis-ci.org/blerou/greebo_mustache.png)](http://travis-ci.org/blerou/greebo_mustache)
+
 A [Mustache](http://defunkt.github.com/mustache/) implementation in PHP.
 
 
